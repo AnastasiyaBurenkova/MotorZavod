@@ -134,10 +134,5 @@ namespace AbstractShopView
         {
             LoadData();
         }
-
-        private void FormMain_Load(object sender, EventArgs e)
-        {
-
-        }
     }
 }
