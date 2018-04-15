@@ -1,0 +1,14 @@
+C:\Users\user\Desktop\AbstractShop-LabWork09\AbstractShopService\bin\Debug\AbstractShopService.dll
+C:\Users\user\Desktop\AbstractShop-LabWork09\AbstractShopService\bin\Debug\AbstractShopService.pdb
+C:\Users\user\Desktop\AbstractShop-LabWork09\AbstractShopService\bin\Debug\AbstractShopModel.dll
+C:\Users\user\Desktop\AbstractShop-LabWork09\AbstractShopService\bin\Debug\AbstractShopModel.pdb
+C:\Users\user\Desktop\AbstractShop-LabWork09\AbstractShopService\obj\Debug\AbstractShopService.csprojResolveAssemblyReference.cache
+C:\Users\user\Desktop\AbstractShop-LabWork09\AbstractShopService\obj\Debug\AbstractShopService.dll
+C:\Users\user\Desktop\AbstractShop-LabWork09\AbstractShopService\obj\Debug\AbstractShopService.pdb
+C:\Users\Admin\Desktop\ТП\AbstractShop-LabWork10\AbstractShopService\bin\Debug\AbstractShopService.dll
+C:\Users\Admin\Desktop\ТП\AbstractShop-LabWork10\AbstractShopService\bin\Debug\AbstractShopService.pdb
+C:\Users\Admin\Desktop\ТП\AbstractShop-LabWork10\AbstractShopService\bin\Debug\AbstractShopModel.dll
+C:\Users\Admin\Desktop\ТП\AbstractShop-LabWork10\AbstractShopService\bin\Debug\AbstractShopModel.pdb
+C:\Users\Admin\Desktop\ТП\AbstractShop-LabWork10\AbstractShopService\obj\Debug\AbstractShopService.csprojResolveAssemblyReference.cache
+C:\Users\Admin\Desktop\ТП\AbstractShop-LabWork10\AbstractShopService\obj\Debug\AbstractShopService.dll
+C:\Users\Admin\Desktop\ТП\AbstractShop-LabWork10\AbstractShopService\obj\Debug\AbstractShopService.pdb

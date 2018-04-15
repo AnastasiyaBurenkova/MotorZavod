@@ -1,0 +1,10 @@
+C:\Users\Admin\Desktop\ТП\AbstractShop-LabWork11\AbstractShopModel\bin\Debug\AbstractShopModel.dll.config
+C:\Users\Admin\Desktop\ТП\AbstractShop-LabWork11\AbstractShopModel\bin\Debug\AbstractShopModel.dll
+C:\Users\Admin\Desktop\ТП\AbstractShop-LabWork11\AbstractShopModel\bin\Debug\AbstractShopModel.pdb
+C:\Users\Admin\Desktop\ТП\AbstractShop-LabWork11\AbstractShopModel\bin\Debug\EntityFramework.dll
+C:\Users\Admin\Desktop\ТП\AbstractShop-LabWork11\AbstractShopModel\bin\Debug\EntityFramework.SqlServer.dll
+C:\Users\Admin\Desktop\ТП\AbstractShop-LabWork11\AbstractShopModel\bin\Debug\EntityFramework.xml
+C:\Users\Admin\Desktop\ТП\AbstractShop-LabWork11\AbstractShopModel\bin\Debug\EntityFramework.SqlServer.xml
+C:\Users\Admin\Desktop\ТП\AbstractShop-LabWork11\AbstractShopModel\obj\Debug\MotorZavodModel.csprojResolveAssemblyReference.cache
+C:\Users\Admin\Desktop\ТП\AbstractShop-LabWork11\AbstractShopModel\obj\Debug\AbstractShopModel.dll
+C:\Users\Admin\Desktop\ТП\AbstractShop-LabWork11\AbstractShopModel\obj\Debug\AbstractShopModel.pdb

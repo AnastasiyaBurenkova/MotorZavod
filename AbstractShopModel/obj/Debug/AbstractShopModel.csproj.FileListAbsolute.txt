@@ -1,0 +1,10 @@
+C:\Users\User\Desktop\AbstractShop-LabWork09\AbstractShopModel\bin\Debug\AbstractShopModel.dll
+C:\Users\User\Desktop\AbstractShop-LabWork09\AbstractShopModel\bin\Debug\AbstractShopModel.pdb
+C:\Users\User\Desktop\AbstractShop-LabWork09\AbstractShopModel\obj\Debug\AbstractShopModel.csprojResolveAssemblyReference.cache
+C:\Users\User\Desktop\AbstractShop-LabWork09\AbstractShopModel\obj\Debug\AbstractShopModel.dll
+C:\Users\User\Desktop\AbstractShop-LabWork09\AbstractShopModel\obj\Debug\AbstractShopModel.pdb
+C:\Users\Admin\Desktop\ТП\AbstractShop-LabWork10\AbstractShopModel\bin\Debug\AbstractShopModel.dll
+C:\Users\Admin\Desktop\ТП\AbstractShop-LabWork10\AbstractShopModel\bin\Debug\AbstractShopModel.pdb
+C:\Users\Admin\Desktop\ТП\AbstractShop-LabWork10\AbstractShopModel\obj\Debug\AbstractShopModel.csprojResolveAssemblyReference.cache
+C:\Users\Admin\Desktop\ТП\AbstractShop-LabWork10\AbstractShopModel\obj\Debug\AbstractShopModel.dll
+C:\Users\Admin\Desktop\ТП\AbstractShop-LabWork10\AbstractShopModel\obj\Debug\AbstractShopModel.pdb
