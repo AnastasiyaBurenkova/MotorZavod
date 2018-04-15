@@ -4,6 +4,7 @@ using AbstractShopService.Interfaces;
 using AbstractShopService.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AbstractShopService.ImplementationsList
 {
@@ -18,103 +19,64 @@ namespace AbstractShopService.ImplementationsList
 
         public List<DvigateliViewModel> GetList()
         {
-            List<DvigateliViewModel> result = new List<DvigateliViewModel>();
-            for (int i = 0; i < source.Dvigatelis.Count; ++i)
-            {
-                // требуется дополнительно получить список компонентов для изделия и их количество
-                List<DvigateliDetaliViewModel> dvigateliDetalis = new List<DvigateliDetaliViewModel>();
-                for (int j = 0; j < source.DvigateliDetalis.Count; ++j)
+            List<DvigateliViewModel> result = source.Dvigatelis
+                .Select(rec => new DvigateliViewModel
                 {
-                    if (source.DvigateliDetalis[j].DvigateliId == source.Dvigatelis[i].Id)
-                    {
-                        string detaliDlyaDvigatelya = string.Empty;
-                        for (int k = 0; k < source.Detalis.Count; ++k)
-                        {
-                            if (source.DvigateliDetalis[j].DetaliId == source.Detalis[k].Id)
+                    Id = rec.Id,
+                    DvigateliName = rec.DvigateliName,
+                    Price = rec.Price,
+                    DvigateliDetalis = source.DvigateliDetalis
+                            .Where(recPC => recPC.DvigateliId == rec.Id)
+                            .Select(recPC => new DvigateliDetaliViewModel
                             {
-                                detaliDlyaDvigatelya = source.Detalis[k].DetaliName;
-                                break;
-                            }
-                        }
-                        dvigateliDetalis.Add(new DvigateliDetaliViewModel
-                        {
-                            Id = source.DvigateliDetalis[j].Id,
-                            DvigateliId = source.DvigateliDetalis[j].DvigateliId,
-                            DetaliId = source.DvigateliDetalis[j].DetaliId,
-                            DetaliName = detaliDlyaDvigatelya,
-                            Count = source.DvigateliDetalis[j].Count
-                        });
-                    }
-                }
-                result.Add(new DvigateliViewModel
-                {
-                    Id = source.Dvigatelis[i].Id,
-                    DvigateliName = source.Dvigatelis[i].DvigateliName,
-                    Price = source.Dvigatelis[i].Price,
-                    DvigateliDetalis = dvigateliDetalis
-                });
-            }
+                                Id = recPC.Id,
+                                DvigateliId = recPC.DvigateliId,
+                                DetaliId = recPC.DetaliId,
+                                DetaliName = source.Detalis
+                                    .FirstOrDefault(recC => recC.Id == recPC.DetaliId)?.DetaliName,
+                                Count = recPC.Count
+                            })
+                            .ToList()
+                })
+                .ToList();
             return result;
         }
 
         public DvigateliViewModel GetElement(int id)
         {
-            for (int i = 0; i < source.Dvigatelis.Count; ++i)
+            Dvigateli element = source.Dvigatelis.FirstOrDefault(rec => rec.Id == id);
+            if (element != null)
             {
-                // требуется дополнительно получить список компонентов для изделия и их количество
-                List<DvigateliDetaliViewModel> dvigateliDetalis = new List<DvigateliDetaliViewModel>();
-                for (int j = 0; j < source.DvigateliDetalis.Count; ++j)
+                return new DvigateliViewModel
                 {
-                    if (source.DvigateliDetalis[j].DvigateliId == source.Dvigatelis[i].Id)
-                    {
-                        string detaliDlyaDvigatelya = string.Empty;
-                        for (int k = 0; k < source.Detalis.Count; ++k)
-                        {
-                            if (source.DvigateliDetalis[j].DetaliId == source.Detalis[k].Id)
+                    Id = element.Id,
+                    DvigateliName = element.DvigateliName,
+                    Price = element.Price,
+                    DvigateliDetalis = source.DvigateliDetalis
+                            .Where(recPC => recPC.DvigateliId == element.Id)
+                            .Select(recPC => new DvigateliDetaliViewModel
                             {
-                                detaliDlyaDvigatelya = source.Detalis[k].DetaliName;
-                                break;
-                            }
-                        }
-                        dvigateliDetalis.Add(new DvigateliDetaliViewModel
-                        {
-                            Id = source.DvigateliDetalis[j].Id,
-                            DvigateliId = source.DvigateliDetalis[j].DvigateliId,
-                            DetaliId = source.DvigateliDetalis[j].DetaliId,
-                            DetaliName = detaliDlyaDvigatelya,
-                            Count = source.DvigateliDetalis[j].Count
-                        });
-                    }
-                }
-                if (source.Dvigatelis[i].Id == id)
-                {
-                    return new DvigateliViewModel
-                    {
-                        Id = source.Dvigatelis[i].Id,
-                        DvigateliName = source.Dvigatelis[i].DvigateliName,
-                        Price = source.Dvigatelis[i].Price,
-                        DvigateliDetalis = dvigateliDetalis
-                    };
-                }
+                                Id = recPC.Id,
+                                DvigateliId = recPC.DvigateliId,
+                                DetaliId = recPC.DetaliId,
+                                DetaliName = source.Detalis
+                                        .FirstOrDefault(recC => recC.Id == recPC.DetaliId)?.DetaliName,
+                                Count = recPC.Count
+                            })
+                            .ToList()
+                };
             }
-
             throw new Exception("Элемент не найден");
         }
 
         public void AddElement(DvigateliBindingModel model)
         {
-            int maxId = 0;
-            for (int i = 0; i < source.Dvigatelis.Count; ++i)
+            Dvigateli element = source.Dvigatelis.FirstOrDefault(rec => rec.DvigateliName == model.DvigateliName);
+            if (element != null)
             {
-                if (source.Dvigatelis[i].Id > maxId)
-                {
-                    maxId = source.Dvigatelis[i].Id;
-                }
-                if (source.Dvigatelis[i].DvigateliName == model.DvigateliName)
-                {
-                    throw new Exception("Уже есть изделие с таким названием");
-                }
+                throw new Exception("Уже есть двигатель с таким названием");
             }
+            int maxId = source.Dvigatelis.Count > 0 ? source.Dvigatelis.Max(rec => rec.Id) : 0;
             source.Dvigatelis.Add(new Dvigateli
             {
                 Id = maxId + 1,
@@ -122,143 +84,102 @@ namespace AbstractShopService.ImplementationsList
                 Price = model.Price
             });
             // компоненты для изделия
-            int maxPCId = 0;
-            for (int i = 0; i < source.DvigateliDetalis.Count; ++i)
-            {
-                if (source.Dvigatelis[i].Id > maxPCId)
-                {
-                    maxPCId = source.DvigateliDetalis[i].Id;
-                }
-            }
+            int maxPCId = source.DvigateliDetalis.Count > 0 ?
+                                    source.DvigateliDetalis.Max(rec => rec.Id) : 0;
             // убираем дубли по компонентам
-            for (int i = 0; i < model.DvigateliDetalis.Count; ++i)
-            {
-                for (int j = 1; j < model.DvigateliDetalis.Count; ++j)
-                {
-                    if (model.DvigateliDetalis[i].DetaliId ==
-                        model.DvigateliDetalis[j].DetaliId)
-                    {
-                        model.DvigateliDetalis[i].Count +=
-                            model.DvigateliDetalis[j].Count;
-                        model.DvigateliDetalis.RemoveAt(j--);
-                    }
-                }
-            }
+            var groupDetalis = model.DvigateliDetalis
+                                        .GroupBy(rec => rec.DetaliId)
+                                        .Select(rec => new
+                                        {
+                                            DetaliId = rec.Key,
+                                            Count = rec.Sum(r => r.Count)
+                                        });
             // добавляем компоненты
-            for (int i = 0; i < model.DvigateliDetalis.Count; ++i)
+            foreach (var groupDetali in groupDetalis)
             {
                 source.DvigateliDetalis.Add(new DvigateliDetali
                 {
                     Id = ++maxPCId,
                     DvigateliId = maxId + 1,
-                    DetaliId = model.DvigateliDetalis[i].DetaliId,
-                    Count = model.DvigateliDetalis[i].Count
+                    DetaliId = groupDetali.DetaliId,
+                    Count = groupDetali.Count
                 });
             }
         }
 
         public void UpdElement(DvigateliBindingModel model)
         {
-            int index = -1;
-            for (int i = 0; i < source.Dvigatelis.Count; ++i)
+            Dvigateli element = source.Dvigatelis.FirstOrDefault(rec =>
+                                        rec.DvigateliName == model.DvigateliName && rec.Id != model.Id);
+            if (element != null)
             {
-                if (source.Dvigatelis[i].Id == model.Id)
-                {
-                    index = i;
-                }
-                if (source.Dvigatelis[i].DvigateliName == model.DvigateliName &&
-                    source.Dvigatelis[i].Id != model.Id)
-                {
-                    throw new Exception("Уже есть изделие с таким названием");
-                }
+                throw new Exception("Уже есть двигатель с таким названием");
             }
-            if (index == -1)
+            element = source.Dvigatelis.FirstOrDefault(rec => rec.Id == model.Id);
+            if (element == null)
             {
                 throw new Exception("Элемент не найден");
             }
-            source.Dvigatelis[index].DvigateliName = model.DvigateliName;
-            source.Dvigatelis[index].Price = model.Price;
-            int maxPCId = 0;
-            for (int i = 0; i < source.DvigateliDetalis.Count; ++i)
-            {
-                if (source.DvigateliDetalis[i].Id > maxPCId)
-                {
-                    maxPCId = source.DvigateliDetalis[i].Id;
-                }
-            }
+            element.DvigateliName = model.DvigateliName;
+            element.Price = model.Price;
+
+            int maxPCId = source.DvigateliDetalis.Count > 0 ? source.DvigateliDetalis.Max(rec => rec.Id) : 0;
             // обновляем существуюущие компоненты
-            for (int i = 0; i < source.DvigateliDetalis.Count; ++i)
+            var compIds = model.DvigateliDetalis.Select(rec => rec.DetaliId).Distinct();
+            var updateDetalis = source.DvigateliDetalis
+                                            .Where(rec => rec.DvigateliId == model.Id &&
+                                           compIds.Contains(rec.DetaliId));
+            foreach (var updateDetali in updateDetalis)
             {
-                if (source.DvigateliDetalis[i].DvigateliId == model.Id)
-                {
-                    bool flag = true;
-                    for (int j = 0; j < model.DvigateliDetalis.Count; ++j)
-                    {
-                        // если встретили, то изменяем количество
-                        if (source.DvigateliDetalis[i].Id == model.DvigateliDetalis[j].Id)
-                        {
-                            source.DvigateliDetalis[i].Count = model.DvigateliDetalis[j].Count;
-                            flag = false;
-                            break;
-                        }
-                    }
-                    // если не встретили, то удаляем
-                    if (flag)
-                    {
-                        source.DvigateliDetalis.RemoveAt(i--);
-                    }
-                }
+                updateDetali.Count = model.DvigateliDetalis
+                                                .FirstOrDefault(rec => rec.Id == updateDetali.Id).Count;
             }
+            source.DvigateliDetalis.RemoveAll(rec => rec.DvigateliId == model.Id &&
+                                       !compIds.Contains(rec.DetaliId));
             // новые записи
-            for (int i = 0; i < model.DvigateliDetalis.Count; ++i)
+            var groupDetalis = model.DvigateliDetalis
+                                        .Where(rec => rec.Id == 0)
+                                        .GroupBy(rec => rec.DetaliId)
+                                        .Select(rec => new
+                                        {
+                                            DetaliId = rec.Key,
+                                            Count = rec.Sum(r => r.Count)
+                                        });
+            foreach (var groupDetali in groupDetalis)
             {
-                if (model.DvigateliDetalis[i].Id == 0)
+                DvigateliDetali elementPC = source.DvigateliDetalis
+                                        .FirstOrDefault(rec => rec.DvigateliId == model.Id &&
+                                                        rec.DetaliId == groupDetali.DetaliId);
+                if (elementPC != null)
                 {
-                    // ищем дубли
-                    for (int j = 0; j < source.DvigateliDetalis.Count; ++j)
+                    elementPC.Count += groupDetali.Count;
+                }
+                else
+                {
+                    source.DvigateliDetalis.Add(new DvigateliDetali
                     {
-                        if (source.DvigateliDetalis[j].DvigateliId == model.Id &&
-                            source.DvigateliDetalis[j].DetaliId == model.DvigateliDetalis[i].DetaliId)
-                        {
-                            source.DvigateliDetalis[j].Count += model.DvigateliDetalis[i].Count;
-                            model.DvigateliDetalis[i].Id = source.DvigateliDetalis[j].Id;
-                            break;
-                        }
-                    }
-                    // если не нашли дубли, то новая запись
-                    if (model.DvigateliDetalis[i].Id == 0)
-                    {
-                        source.DvigateliDetalis.Add(new DvigateliDetali
-                        {
-                            Id = ++maxPCId,
-                            DvigateliId = model.Id,
-                            DetaliId = model.DvigateliDetalis[i].DetaliId,
-                            Count = model.DvigateliDetalis[i].Count
-                        });
-                    }
+                        Id = ++maxPCId,
+                        DvigateliId = model.Id,
+                        DetaliId = groupDetali.DetaliId,
+                        Count = groupDetali.Count
+                    });
                 }
             }
         }
 
         public void DelElement(int id)
         {
-            // удаяем записи по компонентам при удалении изделия
-            for (int i = 0; i < source.DvigateliDetalis.Count; ++i)
+            Dvigateli element = source.Dvigatelis.FirstOrDefault(rec => rec.Id == id);
+            if (element != null)
             {
-                if (source.DvigateliDetalis[i].DvigateliId == id)
-                {
-                    source.DvigateliDetalis.RemoveAt(i--);
-                }
+                // удаяем записи по компонентам при удалении изделия
+                source.DvigateliDetalis.RemoveAll(rec => rec.DvigateliId == id);
+                source.Dvigatelis.Remove(element);
             }
-            for (int i = 0; i < source.Dvigatelis.Count; ++i)
+            else
             {
-                if (source.Dvigatelis[i].Id == id)
-                {
-                    source.Dvigatelis.RemoveAt(i);
-                    return;
-                }
+                throw new Exception("Элемент не найден");
             }
-            throw new Exception("Элемент не найден");
         }
     }
 }
