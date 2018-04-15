@@ -4,6 +4,7 @@ using AbstractShopService.Interfaces;
 using AbstractShopService.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AbstractShopService.ImplementationsList
 {
@@ -18,48 +19,47 @@ namespace AbstractShopService.ImplementationsList
 
         public List<ZakazchikViewModel> GetList()
         {
-            List<ZakazchikViewModel> result = new List<ZakazchikViewModel>();
-            for (int i = 0; i < source.Zakazchiks.Count; ++i)
-            {
-                result.Add(new ZakazchikViewModel
+            List<ZakazchikViewModel> result = source.Zakazchiks
+                .Select(rec => new ZakazchikViewModel
                 {
-                    Id = source.Zakazchiks[i].Id,
-                    ZakazchikFIO = source.Zakazchiks[i].ZakazchikFIO
-                });
-            }
+                    Id = rec.Id,
+                    ZakazchikFIO = rec.ZakazchikFIO
+                })
+                .ToList();
             return result;
+
+            List<ZakazchikViewModel> result1 = (from rec in source.Zakazchiks
+                                                select new ZakazchikViewModel
+                                                {
+                                                    Id = rec.Id,
+                                                    ZakazchikFIO = rec.ZakazchikFIO
+                                                }).ToList();
+
+             return result1;
         }
 
         public ZakazchikViewModel GetElement(int id)
         {
-            for (int i = 0; i < source.Zakazchiks.Count; ++i)
+            Zakazchik element = source.Zakazchiks.FirstOrDefault(rec => rec.Id == id);
+            if (element != null)
             {
-                if (source.Zakazchiks[i].Id == id)
+                return new ZakazchikViewModel
                 {
-                    return new ZakazchikViewModel
-                    {
-                        Id = source.Zakazchiks[i].Id,
-                        ZakazchikFIO = source.Zakazchiks[i].ZakazchikFIO
-                    };
-                }
+                    Id = element.Id,
+                    ZakazchikFIO = element.ZakazchikFIO
+                };
             }
             throw new Exception("Элемент не найден");
         }
 
         public void AddElement(ZakazchikBindingModel model)
         {
-            int maxId = 0;
-            for (int i = 0; i < source.Zakazchiks.Count; ++i)
+            Zakazchik element = source.Zakazchiks.FirstOrDefault(rec => rec.ZakazchikFIO == model.ZakazchikFIO);
+            if (element != null)
             {
-                if (source.Zakazchiks[i].Id > maxId)
-                {
-                    maxId = source.Zakazchiks[i].Id;
-                }
-                if (source.Zakazchiks[i].ZakazchikFIO == model.ZakazchikFIO)
-                {
-                    throw new Exception("Уже есть клиент с таким ФИО");
-                }
+                throw new Exception("Уже есть заказчик с таким ФИО");
             }
+            int maxId = source.Zakazchiks.Count > 0 ? source.Zakazchiks.Max(rec => rec.Id) : 0;
             source.Zakazchiks.Add(new Zakazchik
             {
                 Id = maxId + 1,
@@ -69,37 +69,31 @@ namespace AbstractShopService.ImplementationsList
 
         public void UpdElement(ZakazchikBindingModel model)
         {
-            int index = -1;
-            for (int i = 0; i < source.Zakazchiks.Count; ++i)
+            Zakazchik element = source.Zakazchiks.FirstOrDefault(rec =>
+                                    rec.ZakazchikFIO == model.ZakazchikFIO && rec.Id != model.Id);
+            if (element != null)
             {
-                if (source.Zakazchiks[i].Id == model.Id)
-                {
-                    index = i;
-                }
-                if (source.Zakazchiks[i].ZakazchikFIO == model.ZakazchikFIO &&
-                    source.Zakazchiks[i].Id != model.Id)
-                {
-                    throw new Exception("Уже есть клиент с таким ФИО");
-                }
+                throw new Exception("Уже есть заказчик с таким ФИО");
             }
-            if (index == -1)
+            element = source.Zakazchiks.FirstOrDefault(rec => rec.Id == model.Id);
+            if (element == null)
             {
                 throw new Exception("Элемент не найден");
             }
-            source.Zakazchiks[index].ZakazchikFIO = model.ZakazchikFIO;
+            element.ZakazchikFIO = model.ZakazchikFIO;
         }
 
         public void DelElement(int id)
         {
-            for (int i = 0; i < source.Zakazchiks.Count; ++i)
+            Zakazchik element = source.Zakazchiks.FirstOrDefault(rec => rec.Id == id);
+            if (element != null)
             {
-                if (source.Zakazchiks[i].Id == id)
-                {
-                    source.Zakazchiks.RemoveAt(i);
-                    return;
-                }
+                source.Zakazchiks.Remove(element);
             }
-            throw new Exception("Элемент не найден");
+            else
+            {
+                throw new Exception("Элемент не найден");
+            }
         }
     }
 }
