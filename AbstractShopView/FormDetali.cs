@@ -3,6 +3,10 @@ using AbstractShopService.ViewModels;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using AbstractShopService.BindingModels;
+using AbstractShopService.ViewModels;
+using System;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace AbstractShopView
@@ -24,19 +28,15 @@ namespace AbstractShopView
             {
                 try
                 {
-                    var response = APIClient.GetRequest("api/Detali/Get/" + id.Value);
-                    if (response.Result.IsSuccessStatusCode)
-                    {
-                        var Detali = APIClient.GetElement<DetaliViewModel>(response);
-                        textBoxName.Text = Detali.DetaliName;
-                    }
-                    else
-                    {
-                        throw new Exception(APIClient.GetError(response));
-                    }
+                    var Detali = Task.Run(() => APIClient.GetRequestData<DetaliViewModel>("api/Detali/Get/" + id.Value)).Result;
+                    textBoxName.Text = Detali.DetaliName;
                 }
                 catch (Exception ex)
                 {
+                    while (ex.InnerException != null)
+                    {
+                        ex = ex.InnerException;
+                    }
                     MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
@@ -49,44 +49,41 @@ namespace AbstractShopView
                 MessageBox.Show("Заполните название", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            try
+            string name = textBoxName.Text;
+            Task task;
+            if (id.HasValue)
             {
-                Task<HttpResponseMessage> response;
-                if (id.HasValue)
+                task = Task.Run(() => APIClient.PostRequestData("api/Detali/UpdElement", new DetaliBindingModel
                 {
-                    response = APIClient.PostRequest("api/Detali/UpdElement", new DetaliBindingModel
-                    {
-                        Id = id.Value,
-                        DetaliName = textBoxName.Text
-                    });
-                }
-                else
-                {
-                    response = APIClient.PostRequest("api/Detali/AddElement", new DetaliBindingModel
-                    {
-                        DetaliName = textBoxName.Text
-                    });
-                }
-                if (response.Result.IsSuccessStatusCode)
-                {
-                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    DialogResult = DialogResult.OK;
-                    Close();
-                }
-                else
-                {
-                    throw new Exception(APIClient.GetError(response));
-                }
+                    Id = id.Value,
+                    DetaliName = name
+                }));
             }
-            catch (Exception ex)
+            else
             {
+                task = Task.Run(() => APIClient.PostRequestData("api/Detali/AddElement", new DetaliBindingModel
+                {
+                    DetaliName = name
+                }));
+            }
+
+            task.ContinueWith((prevTask) => MessageBox.Show("Сохранение прошло успешно. Обновите список", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information),
+                TaskContinuationOptions.OnlyOnRanToCompletion);
+            task.ContinueWith((prevTask) =>
+            {
+                var ex = (Exception)prevTask.Exception;
+                while (ex.InnerException != null)
+                {
+                    ex = ex.InnerException;
+                }
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            }, TaskContinuationOptions.OnlyOnFaulted);
+
+            Close();
         }
 
         private void buttonCancel_Click(object sender, EventArgs e)
         {
-            DialogResult = DialogResult.Cancel;
             Close();
         }
     }

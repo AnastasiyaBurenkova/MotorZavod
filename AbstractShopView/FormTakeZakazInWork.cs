@@ -2,6 +2,7 @@
 using AbstractShopService.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace AbstractShopView
@@ -26,25 +27,21 @@ namespace AbstractShopView
                     MessageBox.Show("Не указан заказ", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     Close();
                 }
-                var response = APIClient.GetRequest("api/Implementer/GetList");
-                if (response.Result.IsSuccessStatusCode)
+                List<RabochiViewModel> list = Task.Run(() => APIClient.GetRequestData<List<RabochiViewModel>>("api/Rabochi/GetList")).Result;
+                if (list != null)
                 {
-                    List<RabochiViewModel> list = APIClient.GetElement<List<RabochiViewModel>>(response);
-                    if (list != null)
-                    {
-                        comboBoxImplementer.DisplayMember = "ImplementerFIO";
-                        comboBoxImplementer.ValueMember = "Id";
-                        comboBoxImplementer.DataSource = list;
-                        comboBoxImplementer.SelectedItem = null;
-                    }
-                }
-                else
-                {
-                    throw new Exception(APIClient.GetError(response));
+                    comboBoxImplementer.DisplayMember = "RabochiFIO";
+                    comboBoxImplementer.ValueMember = "Id";
+                    comboBoxImplementer.DataSource = list;
+                    comboBoxImplementer.SelectedItem = null;
                 }
             }
             catch (Exception ex)
             {
+                while (ex.InnerException != null)
+                {
+                    ex = ex.InnerException;
+                }
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -58,31 +55,39 @@ namespace AbstractShopView
             }
             try
             {
-                var response = APIClient.PostRequest("api/Main/TakeZakazInWork", new ZakazBindingModel
+                int implementerId = Convert.ToInt32(comboBoxImplementer.SelectedValue);
+                Task task = Task.Run(() => APIClient.PostRequestData("api/Main/TakeZakazInWork", new ZakazBindingModel
                 {
                     Id = id.Value,
-                    RabochiId = Convert.ToInt32(comboBoxImplementer.SelectedValue)
-                });
-                if (response.Result.IsSuccessStatusCode)
+                    RabochiId = implementerId
+                }));
+
+                task.ContinueWith((prevTask) => MessageBox.Show("Заказ передан в работу. Обновите список", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information),
+                    TaskContinuationOptions.OnlyOnRanToCompletion);
+                task.ContinueWith((prevTask) =>
                 {
-                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    DialogResult = DialogResult.OK;
-                    Close();
-                }
-                else
-                {
-                    throw new Exception(APIClient.GetError(response));
-                }
+                    var ex = (Exception)prevTask.Exception;
+                    while (ex.InnerException != null)
+                    {
+                        ex = ex.InnerException;
+                    }
+                    MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }, TaskContinuationOptions.OnlyOnFaulted);
+
+                Close();
             }
             catch (Exception ex)
             {
+                while (ex.InnerException != null)
+                {
+                    ex = ex.InnerException;
+                }
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void buttonCancel_Click(object sender, EventArgs e)
         {
-            DialogResult = DialogResult.Cancel;
             Close();
         }
     }
