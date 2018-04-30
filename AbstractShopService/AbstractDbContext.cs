@@ -1,13 +1,14 @@
 ﻿using AbstractShopModel;
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
 
 namespace AbstractShopService
 {
-    [Table("AbstractDatabase")]
+
     public class AbstractDbContext : DbContext
     {
-        public AbstractDbContext()
+        public AbstractDbContext() : base("AbstractDatabase1")
         {
             //настройки конфигурации для entity
             Configuration.ProxyCreationEnabled = false;
@@ -30,5 +31,35 @@ namespace AbstractShopService
         public virtual DbSet<Garazh> Garazhs { get; set; }
 
         public virtual DbSet<GarazhDetali> GarazhDetalis { get; set; }
+        /// <summary>
+        /// Перегружаем метод созранения изменений. Если возникла ошибка - очищаем все изменения
+        /// </summary>
+        /// <returns></returns>
+        public override int SaveChanges()
+        {
+            try
+            {
+                return base.SaveChanges();
+            }
+            catch (Exception)
+            {
+                foreach (var entry in ChangeTracker.Entries())
+                {
+                    switch (entry.State)
+                    {
+                        case EntityState.Modified:
+                            entry.State = EntityState.Unchanged;
+                            break;
+                        case EntityState.Deleted:
+                            entry.Reload();
+                            break;
+                        case EntityState.Added:
+                            entry.State = EntityState.Detached;
+                            break;
+                    }
+                }
+                throw;
+            }
+        }
     }
 }

@@ -2,6 +2,7 @@
 using AbstractShopService.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace AbstractShopView
@@ -17,41 +18,30 @@ namespace AbstractShopView
         {
             try
             {
-                var responseC = APIClient.GetRequest("api/Detali/GetList");
-                if (responseC.Result.IsSuccessStatusCode)
+                List<DetaliViewModel> listC = Task.Run(() => APIClient.GetRequestData<List<DetaliViewModel>>("api/Detali/GetList")).Result;
+                if (listC != null)
                 {
-                    List<DetaliViewModel> list = APIClient.GetElement<List<DetaliViewModel>>(responseC);
-                    if (list != null)
-                    {
-                        comboBoxComponent.DisplayMember = "DetaliName";
-                        comboBoxComponent.ValueMember = "Id";
-                        comboBoxComponent.DataSource = list;
-                        comboBoxComponent.SelectedItem = null;
-                    }
+                    comboBoxComponent.DisplayMember = "DetaliName";
+                    comboBoxComponent.ValueMember = "Id";
+                    comboBoxComponent.DataSource = listC;
+                    comboBoxComponent.SelectedItem = null;
                 }
-                else
+
+                List<GarazhViewModel> listS = Task.Run(() => APIClient.GetRequestData<List<GarazhViewModel>>("api/Garazh/GetList")).Result;
+                if (listS != null)
                 {
-                    throw new Exception(APIClient.GetError(responseC));
-                }
-                var responseS = APIClient.GetRequest("api/Garazh/GetList");
-                if (responseS.Result.IsSuccessStatusCode)
-                {
-                    List<GarazhViewModel> list = APIClient.GetElement<List<GarazhViewModel>>(responseS);
-                    if (list != null)
-                    {
-                        comboBoxStock.DisplayMember = "GarazhName";
-                        comboBoxStock.ValueMember = "Id";
-                        comboBoxStock.DataSource = list;
-                        comboBoxStock.SelectedItem = null;
-                    }
-                }
-                else
-                {
-                    throw new Exception(APIClient.GetError(responseC));
+                    comboBoxStock.DisplayMember = "GarazhName";
+                    comboBoxStock.ValueMember = "Id";
+                    comboBoxStock.DataSource = listS;
+                    comboBoxStock.SelectedItem = null;
                 }
             }
             catch (Exception ex)
             {
+                while (ex.InnerException != null)
+                {
+                    ex = ex.InnerException;
+                }
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -75,32 +65,42 @@ namespace AbstractShopView
             }
             try
             {
-                var response = APIClient.PostRequest("api/Main/PutDetaliOnGarazh", new GarazhDetaliBindingModel
+                int componentId = Convert.ToInt32(comboBoxComponent.SelectedValue);
+                int GarazhId = Convert.ToInt32(comboBoxStock.SelectedValue);
+                int count = Convert.ToInt32(textBoxCount.Text);
+                Task task = Task.Run(() => APIClient.PostRequestData("api/Main/PutDetaliOnGarazh", new GarazhDetaliBindingModel
                 {
-                    DetaliId = Convert.ToInt32(comboBoxComponent.SelectedValue),
-                    GarazhId = Convert.ToInt32(comboBoxStock.SelectedValue),
-                    Count = Convert.ToInt32(textBoxCount.Text)
-                });
-                if (response.Result.IsSuccessStatusCode)
+                    DetaliId = componentId,
+                    GarazhId = GarazhId,
+                    Count = count
+                }));
+
+                task.ContinueWith((prevTask) => MessageBox.Show("Склад пополнен", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information),
+                    TaskContinuationOptions.OnlyOnRanToCompletion);
+                task.ContinueWith((prevTask) =>
                 {
-                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    DialogResult = DialogResult.OK;
-                    Close();
-                }
-                else
-                {
-                    throw new Exception(APIClient.GetError(response));
-                }
+                    var ex = (Exception)prevTask.Exception;
+                    while (ex.InnerException != null)
+                    {
+                        ex = ex.InnerException;
+                    }
+                    MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }, TaskContinuationOptions.OnlyOnFaulted);
+
+                Close();
             }
             catch (Exception ex)
             {
+                while (ex.InnerException != null)
+                {
+                    ex = ex.InnerException;
+                }
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void buttonCancel_Click(object sender, EventArgs e)
         {
-            DialogResult = DialogResult.Cancel;
             Close();
         }
     }
