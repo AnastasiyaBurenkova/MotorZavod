@@ -4,6 +4,7 @@ using AbstractShopService.Interfaces;
 using AbstractShopService.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AbstractShopService.ImplementationsList
 {
@@ -18,48 +19,38 @@ namespace AbstractShopService.ImplementationsList
 
         public List<RabochiViewModel> GetList()
         {
-            List<RabochiViewModel> result = new List<RabochiViewModel>();
-            for (int i = 0; i < source.Rabochis.Count; ++i)
-            {
-                result.Add(new RabochiViewModel
+            List<RabochiViewModel> result = source.Rabochis
+                .Select(rec => new RabochiViewModel
                 {
-                    Id = source.Rabochis[i].Id,
-                    RabochiFIO = source.Rabochis[i].RabochiFIO
-                });
-            }
+                    Id = rec.Id,
+                    RabochiFIO = rec.RabochiFIO
+                })
+                .ToList();
             return result;
         }
 
         public RabochiViewModel GetElement(int id)
         {
-            for (int i = 0; i < source.Rabochis.Count; ++i)
+            Rabochi element = source.Rabochis.FirstOrDefault(rec => rec.Id == id);
+            if (element != null)
             {
-                if (source.Rabochis[i].Id == id)
+                return new RabochiViewModel
                 {
-                    return new RabochiViewModel
-                    {
-                        Id = source.Rabochis[i].Id,
-                        RabochiFIO = source.Rabochis[i].RabochiFIO
-                    };
-                }
+                    Id = element.Id,
+                    RabochiFIO = element.RabochiFIO
+                };
             }
             throw new Exception("Элемент не найден");
         }
 
         public void AddElement(RabochiBindingModel model)
         {
-            int maxId = 0;
-            for (int i = 0; i < source.Rabochis.Count; ++i)
+            Rabochi element = source.Rabochis.FirstOrDefault(rec => rec.RabochiFIO == model.RabochiFIO);
+            if (element != null)
             {
-                if (source.Rabochis[i].Id > maxId)
-                {
-                    maxId = source.Rabochis[i].Id;
-                }
-                if (source.Rabochis[i].RabochiFIO == model.RabochiFIO)
-                {
-                    throw new Exception("Уже есть сотрудник с таким ФИО");
-                }
+                throw new Exception("Уже есть рабочий с таким ФИО");
             }
+            int maxId = source.Rabochis.Count > 0 ? source.Rabochis.Max(rec => rec.Id) : 0;
             source.Rabochis.Add(new Rabochi
             {
                 Id = maxId + 1,
@@ -69,37 +60,31 @@ namespace AbstractShopService.ImplementationsList
 
         public void UpdElement(RabochiBindingModel model)
         {
-            int index = -1;
-            for (int i = 0; i < source.Rabochis.Count; ++i)
+            Rabochi element = source.Rabochis.FirstOrDefault(rec =>
+                                        rec.RabochiFIO == model.RabochiFIO && rec.Id != model.Id);
+            if (element != null)
             {
-                if (source.Rabochis[i].Id == model.Id)
-                {
-                    index = i;
-                }
-                if (source.Rabochis[i].RabochiFIO == model.RabochiFIO &&
-                    source.Rabochis[i].Id != model.Id)
-                {
-                    throw new Exception("Уже есть сотрудник с таким ФИО");
-                }
+                throw new Exception("Уже есть рабочий с таким ФИО");
             }
-            if (index == -1)
+            element = source.Rabochis.FirstOrDefault(rec => rec.Id == model.Id);
+            if (element == null)
             {
                 throw new Exception("Элемент не найден");
             }
-            source.Rabochis[index].RabochiFIO = model.RabochiFIO;
+            element.RabochiFIO = model.RabochiFIO;
         }
 
         public void DelElement(int id)
         {
-            for (int i = 0; i < source.Rabochis.Count; ++i)
+            Rabochi element = source.Rabochis.FirstOrDefault(rec => rec.Id == id);
+            if (element != null)
             {
-                if (source.Rabochis[i].Id == id)
-                {
-                    source.Rabochis.RemoveAt(i);
-                    return;
-                }
+                source.Rabochis.Remove(element);
             }
-            throw new Exception("Элемент не найден");
+            else
+            {
+                throw new Exception("Элемент не найден");
+            }
         }
     }
 }
