@@ -4,6 +4,7 @@ using AbstractShopService.Interfaces;
 using AbstractShopService.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AbstractShopService.ImplementationsList
 {
@@ -18,100 +19,62 @@ namespace AbstractShopService.ImplementationsList
 
         public List<GarazhViewModel> GetList()
         {
-            List<GarazhViewModel> result = new List<GarazhViewModel>();
-            for (int i = 0; i < source.Garazhs.Count; ++i)
-            {
-                // требуется дополнительно получить список компонентов на складе и их количество
-                List<GarazhDetaliViewModel> GarazhDetalis = new List<GarazhDetaliViewModel>();
-                for (int j = 0; j < source.GarazhDetalis.Count; ++j)
+            List<GarazhViewModel> result = source.Garazhs
+                .Select(rec => new GarazhViewModel
                 {
-                    if (source.GarazhDetalis[j].GarazhId == source.Garazhs[i].Id)
-                    {
-                        string detaliDlyaDvigatelya = string.Empty;
-                        for (int k = 0; k < source.Detalis.Count; ++k)
-                        {
-                            if (source.DvigateliDetalis[j].DetaliId == source.Detalis[k].Id)
+                    Id = rec.Id,
+                    GarazhName = rec.GarazhName,
+                    GarazhDetalis = source.GarazhDetalis
+                            .Where(recPC => recPC.GarazhId == rec.Id)
+                            .Select(recPC => new GarazhDetaliViewModel
                             {
-                                detaliDlyaDvigatelya = source.Detalis[k].DetaliName;
-                                break;
-                            }
-                        }
-                        GarazhDetalis.Add(new GarazhDetaliViewModel
-                        {
-                            Id = source.GarazhDetalis[j].Id,
-                            GarazhId = source.GarazhDetalis[j].GarazhId,
-                            DetaliId = source.GarazhDetalis[j].DetaliId,
-                            DetaliName = detaliDlyaDvigatelya,
-                            Count = source.GarazhDetalis[j].Count
-                        });
-                    }
-                }
-                result.Add(new GarazhViewModel
-                {
-                    Id = source.Garazhs[i].Id,
-                    GarazhName = source.Garazhs[i].GarazhName,
-                    GarazhDetalis = GarazhDetalis
-                });
-            }
+                                Id = recPC.Id,
+                                GarazhId = recPC.GarazhId,
+                                DetaliId = recPC.DetaliId,
+                                DetaliName = source.Detalis
+                                    .FirstOrDefault(recC => recC.Id == recPC.DetaliId)?.DetaliName,
+                                Count = recPC.Count
+                            })
+                            .ToList()
+                })
+                .ToList();
             return result;
         }
 
         public GarazhViewModel GetElement(int id)
         {
-            for (int i = 0; i < source.Garazhs.Count; ++i)
+            Garazh element = source.Garazhs.FirstOrDefault(rec => rec.Id == id);
+            if (element != null)
             {
-                // требуется дополнительно получить список компонентов на складе и их количество
-                List<GarazhDetaliViewModel> GarazhDetalis = new List<GarazhDetaliViewModel>();
-                for (int j = 0; j < source.GarazhDetalis.Count; ++j)
+                return new GarazhViewModel
                 {
-                    if (source.GarazhDetalis[j].GarazhId == source.Garazhs[i].Id)
-                    {
-                        string detaliDlyaDvigatelya = string.Empty;
-                        for (int k = 0; k < source.Detalis.Count; ++k)
-                        {
-                            if (source.DvigateliDetalis[j].DetaliId == source.Detalis[k].Id)
+                    Id = element.Id,
+                    GarazhName = element.GarazhName,
+                    GarazhDetalis = source.GarazhDetalis
+                            .Where(recPC => recPC.GarazhId == element.Id)
+                            .Select(recPC => new GarazhDetaliViewModel
                             {
-                                detaliDlyaDvigatelya = source.Detalis[k].DetaliName;
-                                break;
-                            }
-                        }
-                        GarazhDetalis.Add(new GarazhDetaliViewModel
-                        {
-                            Id = source.GarazhDetalis[j].Id,
-                            GarazhId = source.GarazhDetalis[j].GarazhId,
-                            DetaliId = source.GarazhDetalis[j].DetaliId,
-                            DetaliName = detaliDlyaDvigatelya,
-                            Count = source.GarazhDetalis[j].Count
-                        });
-                    }
-                }
-                if (source.Garazhs[i].Id == id)
-                {
-                    return new GarazhViewModel
-                    {
-                        Id = source.Garazhs[i].Id,
-                        GarazhName = source.Garazhs[i].GarazhName,
-                        GarazhDetalis = GarazhDetalis
-                    };
-                }
+                                Id = recPC.Id,
+                                GarazhId = recPC.GarazhId,
+                                DetaliId = recPC.DetaliId,
+                                DetaliName = source.Detalis
+                                    .FirstOrDefault(recC => recC.Id == recPC.DetaliId)?.DetaliName,
+                                Count = recPC.Count
+                            })
+                            .ToList()
+                };
             }
             throw new Exception("Элемент не найден");
         }
 
         public void AddElement(GarazhBindingModel model)
         {
-            int maxId = 0;
-            for (int i = 0; i < source.Garazhs.Count; ++i)
+            Garazh element = source.Garazhs.FirstOrDefault(rec => rec.GarazhName == model.GarazhName);
+            if (element != null)
             {
-                if (source.Garazhs[i].Id > maxId)
-                {
-                    maxId = source.Garazhs[i].Id;
-                }
-                if (source.Garazhs[i].GarazhName == model.GarazhName)
-                {
-                    throw new Exception("Уже есть склад с таким названием");
-                }
+                throw new Exception("Уже есть гараж с таким названием");
             }
+            int maxId = source.Garazhs.Count > 0 ? source.Garazhs.Max(rec => rec.Id) : 0;
             source.Garazhs.Add(new Garazh
             {
                 Id = maxId + 1,
@@ -121,45 +84,33 @@ namespace AbstractShopService.ImplementationsList
 
         public void UpdElement(GarazhBindingModel model)
         {
-            int index = -1;
-            for (int i = 0; i < source.Garazhs.Count; ++i)
+            Garazh element = source.Garazhs.FirstOrDefault(rec =>
+                                        rec.GarazhName == model.GarazhName && rec.Id != model.Id);
+            if (element != null)
             {
-                if (source.Garazhs[i].Id == model.Id)
-                {
-                    index = i;
-                }
-                if (source.Garazhs[i].GarazhName == model.GarazhName &&
-                    source.Garazhs[i].Id != model.Id)
-                {
-                    throw new Exception("Уже есть склад с таким названием");
-                }
+                throw new Exception("Уже есть гараж с таким названием");
             }
-            if (index == -1)
+            element = source.Garazhs.FirstOrDefault(rec => rec.Id == model.Id);
+            if (element == null)
             {
                 throw new Exception("Элемент не найден");
             }
-            source.Garazhs[index].GarazhName = model.GarazhName;
+            element.GarazhName = model.GarazhName;
         }
 
         public void DelElement(int id)
         {
-            // при удалении удаляем все записи о компонентах на удаляемом складе
-            for (int i = 0; i < source.GarazhDetalis.Count; ++i)
+            Garazh element = source.Garazhs.FirstOrDefault(rec => rec.Id == id);
+            if (element != null)
             {
-                if (source.GarazhDetalis[i].GarazhId == id)
-                {
-                    source.GarazhDetalis.RemoveAt(i--);
-                }
+                // при удалении удаляем все записи о компонентах на удаляемом складе
+                source.GarazhDetalis.RemoveAll(rec => rec.GarazhId == id);
+                source.Garazhs.Remove(element);
             }
-            for (int i = 0; i < source.Garazhs.Count; ++i)
+            else
             {
-                if (source.Garazhs[i].Id == id)
-                {
-                    source.Garazhs.RemoveAt(i);
-                    return;
-                }
+                throw new Exception("Элемент не найден");
             }
-            throw new Exception("Элемент не найден");
         }
     }
 }

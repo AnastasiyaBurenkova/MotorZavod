@@ -4,6 +4,7 @@ using AbstractShopService.Interfaces;
 using AbstractShopService.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AbstractShopService.ImplementationsList
 {
@@ -18,48 +19,38 @@ namespace AbstractShopService.ImplementationsList
 
         public List<DetaliViewModel> GetList()
         {
-            List<DetaliViewModel> result = new List<DetaliViewModel>();
-            for (int i = 0; i < source.Detalis.Count; ++i)
-            {
-                result.Add(new DetaliViewModel
+            List<DetaliViewModel> result = source.Detalis
+                .Select(rec => new DetaliViewModel
                 {
-                    Id = source.Detalis[i].Id,
-                    DetaliName = source.Detalis[i].DetaliName
-                });
-            }
+                    Id = rec.Id,
+                    DetaliName = rec.DetaliName
+                })
+                .ToList();
             return result;
         }
 
         public DetaliViewModel GetElement(int id)
         {
-            for (int i = 0; i < source.Detalis.Count; ++i)
+            Detali element = source.Detalis.FirstOrDefault(rec => rec.Id == id);
+            if (element != null)
             {
-                if (source.Detalis[i].Id == id)
+                return new DetaliViewModel
                 {
-                    return new DetaliViewModel
-                    {
-                        Id = source.Detalis[i].Id,
-                        DetaliName = source.Detalis[i].DetaliName
-                    };
-                }
+                    Id = element.Id,
+                    DetaliName = element.DetaliName
+                };
             }
             throw new Exception("Элемент не найден");
         }
 
         public void AddElement(DetaliBindingModel model)
         {
-            int maxId = 0;
-            for (int i = 0; i < source.Detalis.Count; ++i)
+            Detali element = source.Detalis.FirstOrDefault(rec => rec.DetaliName == model.DetaliName);
+            if (element != null)
             {
-                if (source.Detalis[i].Id > maxId)
-                {
-                    maxId = source.Detalis[i].Id;
-                }
-                if (source.Detalis[i].DetaliName == model.DetaliName)
-                {
-                    throw new Exception("Уже есть компонент с таким названием");
-                }
+                throw new Exception("Уже есть деталь с таким названием");
             }
+            int maxId = source.Detalis.Count > 0 ? source.Detalis.Max(rec => rec.Id) : 0;
             source.Detalis.Add(new Detali
             {
                 Id = maxId + 1,
@@ -69,37 +60,31 @@ namespace AbstractShopService.ImplementationsList
 
         public void UpdElement(DetaliBindingModel model)
         {
-            int index = -1;
-            for (int i = 0; i < source.Detalis.Count; ++i)
+            Detali element = source.Detalis.FirstOrDefault(rec =>
+                                        rec.DetaliName == model.DetaliName && rec.Id != model.Id);
+            if (element != null)
             {
-                if (source.Detalis[i].Id == model.Id)
-                {
-                    index = i;
-                }
-                if (source.Detalis[i].DetaliName == model.DetaliName && 
-                    source.Detalis[i].Id != model.Id)
-                {
-                    throw new Exception("Уже есть компонент с таким названием");
-                }
+                throw new Exception("Уже есть деталь с таким названием");
             }
-            if (index == -1)
+            element = source.Detalis.FirstOrDefault(rec => rec.Id == model.Id);
+            if (element == null)
             {
                 throw new Exception("Элемент не найден");
             }
-            source.Detalis[index].DetaliName = model.DetaliName;
+            element.DetaliName = model.DetaliName;
         }
 
         public void DelElement(int id)
         {
-            for (int i = 0; i < source.Detalis.Count; ++i)
+            Detali element = source.Detalis.FirstOrDefault(rec => rec.Id == id);
+            if (element != null)
             {
-                if (source.Detalis[i].Id == id)
-                {
-                    source.Detalis.RemoveAt(i);
-                    return;
-                }
+                source.Detalis.Remove(element);
             }
-            throw new Exception("Элемент не найден");
+            else
+            {
+                throw new Exception("Элемент не найден");
+            }
         }
     }
 }
