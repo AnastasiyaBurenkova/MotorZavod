@@ -4,6 +4,10 @@ using System;
 using System.Windows.Forms;
 using Unity;
 using Unity.Lifetime;
+using AbstractShopService;
+using AbstractShopService.ImplementationsBD;
+using AbstractShopService.ImplementationsList;
+using System.Data.Entity;
 
 namespace AbstractShopView
 {
@@ -25,13 +29,14 @@ namespace AbstractShopView
         public static IUnityContainer BuildUnityContainer()
         {
             var currentContainer = new UnityContainer();
-            currentContainer.RegisterType<IZakazchikService, ZakazchikServiceList>(new HierarchicalLifetimeManager());
-            currentContainer.RegisterType<IDetaliService, DetaliServiceList>(new HierarchicalLifetimeManager());
-            currentContainer.RegisterType<IRabochiService, RabochiServiceList>(new HierarchicalLifetimeManager());
-            currentContainer.RegisterType<IDvigateliService, DvigateliServiceList>(new HierarchicalLifetimeManager());
-            currentContainer.RegisterType<IGarazhService, GarazhServiceList>(new HierarchicalLifetimeManager());
-            currentContainer.RegisterType<IMainService, MainServiceList>(new HierarchicalLifetimeManager());
-            
+            currentContainer.RegisterType<DbContext, AbstractDbContext>(new HierarchicalLifetimeManager());
+            currentContainer.RegisterType<IZakazchikService, ZakazchikServiceBD>(new HierarchicalLifetimeManager());
+            currentContainer.RegisterType<IDetaliService, DetaliServiceBD>(new HierarchicalLifetimeManager());
+            currentContainer.RegisterType<IRabochiService, RabochiServiceBD>(new HierarchicalLifetimeManager());
+            currentContainer.RegisterType<IDvigateliService, DvigateliServiceBD>(new HierarchicalLifetimeManager());
+            currentContainer.RegisterType<IGarazhService, GarazhServiceBD>(new HierarchicalLifetimeManager());
+            currentContainer.RegisterType<IMainService, MainServiceBD>(new HierarchicalLifetimeManager());
+
             return currentContainer;
         }
     }
