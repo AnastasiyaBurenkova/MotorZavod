@@ -1,0 +1,15 @@
+﻿<Window x:Class="WpfMotorZavod.FormRabochi"
+       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Создание исполнителя" Height="115.447" Width="346.436" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+    <Grid>
+        <Label x:Name="labelFIO" Content="ФИО" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="textBoxFullName" HorizontalAlignment="Left" Height="23" Margin="53,13,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="253"/>
+        <Button x:Name="buttonSave" Content="Сохранить" HorizontalAlignment="Left" Margin="147,48,0,0" VerticalAlignment="Top" Width="75" Click="buttonSave_Click"/>
+        <Button x:Name="buttonCancel" Content="Отмена" HorizontalAlignment="Left" Margin="231,48,0,0" VerticalAlignment="Top" Width="75" Click="buttonCancel_Click"/>
+
+    </Grid>
+</Window>
