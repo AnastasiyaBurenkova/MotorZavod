@@ -1,24 +1,16 @@
-﻿using AbstractShopService.Interfaces;
+﻿using AbstractShopService.BindingModels;
 using AbstractShopService.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
-using Unity;
-using Unity.Attributes;
 
 namespace AbstractShopView
 {
     public partial class FormZakazchiks : Form
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
-        private readonly IZakazchikService service;
-
-        public FormZakazchiks(IZakazchikService service)
+        public FormZakazchiks()
         {
             InitializeComponent();
-            this.service = service;
         }
 
         private void FormZakazchiks_Load(object sender, EventArgs e)
@@ -30,12 +22,20 @@ namespace AbstractShopView
         {
             try
             {
-                List<ZakazchikViewModel> list = service.GetList();
-                if (list != null)
+                var response = APIClient.GetRequest("api/Zakazchik/GetList");
+                if (response.Result.IsSuccessStatusCode)
                 {
-                    dataGridView.DataSource = list;
-                    dataGridView.Columns[0].Visible = false;
-                    dataGridView.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                    List<ZakazchikViewModel> list = APIClient.GetElement<List<ZakazchikViewModel>>(response);
+                    if (list != null)
+                    {
+                        dataGridView.DataSource = list;
+                        dataGridView.Columns[0].Visible = false;
+                        dataGridView.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                    }
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
                 }
             }
             catch (Exception ex)
@@ -46,8 +46,8 @@ namespace AbstractShopView
 
         private void buttonAdd_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormZakazchik>();
-            if(form.ShowDialog() == DialogResult.OK)
+            var form = new FormZakazchik();
+            if (form.ShowDialog() == DialogResult.OK)
             {
                 LoadData();
             }
@@ -55,9 +55,9 @@ namespace AbstractShopView
 
         private void buttonUpd_Click(object sender, EventArgs e)
         {
-            if(dataGridView.SelectedRows.Count == 1)
+            if (dataGridView.SelectedRows.Count == 1)
             {
-                var form = Container.Resolve<FormZakazchik>();
+                var form = new FormZakazchik();
                 form.Id = Convert.ToInt32(dataGridView.SelectedRows[0].Cells[0].Value);
                 if (form.ShowDialog() == DialogResult.OK)
                 {
@@ -70,12 +70,16 @@ namespace AbstractShopView
         {
             if (dataGridView.SelectedRows.Count == 1)
             {
-                if(MessageBox.Show("Удалить запись", "Вопрос", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                if (MessageBox.Show("Удалить запись", "Вопрос", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 {
                     int id = Convert.ToInt32(dataGridView.SelectedRows[0].Cells[0].Value);
                     try
                     {
-                        service.DelElement(id);
+                        var response = APIClient.PostRequest("api/Zakazchik/DelElement", new ZakazchikBindingModel { Id = id });
+                        if (!response.Result.IsSuccessStatusCode)
+                        {
+                            throw new Exception(APIClient.GetError(response));
+                        }
                     }
                     catch (Exception ex)
                     {

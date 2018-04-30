@@ -1,41 +1,36 @@
-﻿using AbstractShopService.Interfaces;
-using AbstractShopService.ViewModels;
+﻿using AbstractShopService.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
-using Unity;
-using Unity.Attributes;
 
 namespace AbstractShopView
 {
     public partial class FormDvigateliComponent : Form
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
-        public DvigateliDetaliViewModel Model { set { model = value; }  get { return model; } }
-
-        private readonly IDetaliService service;
+        public DvigateliDetaliViewModel Model { set { model = value; } get { return model; } }
 
         private DvigateliDetaliViewModel model;
 
-        public FormDvigateliComponent(IDetaliService service)
+        public FormDvigateliComponent()
         {
             InitializeComponent();
-            this.service = service;
         }
 
         private void FormProductComponent_Load(object sender, EventArgs e)
         {
             try
             {
-                List<DetaliViewModel> list = service.GetList();
-                if (list != null)
+                var response = APIClient.GetRequest("api/Detali/GetList");
+                if (response.Result.IsSuccessStatusCode)
                 {
                     comboBoxComponent.DisplayMember = "DetaliName";
                     comboBoxComponent.ValueMember = "Id";
-                    comboBoxComponent.DataSource = list;
+                    comboBoxComponent.DataSource = APIClient.GetElement<List<DetaliViewModel>>(response);
                     comboBoxComponent.SelectedItem = null;
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
                 }
             }
             catch (Exception ex)

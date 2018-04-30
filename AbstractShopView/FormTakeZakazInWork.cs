@@ -1,38 +1,20 @@
 ﻿using AbstractShopService.BindingModels;
-using AbstractShopService.Interfaces;
 using AbstractShopService.ViewModels;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using Unity;
-using Unity.Attributes;
 
 namespace AbstractShopView
 {
     public partial class FormTakeZakazInWork : Form
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
         public int Id { set { id = value; } }
-
-        private readonly IRabochiService serviceI;
-
-        private readonly IMainService serviceM;
 
         private int? id;
 
-        public FormTakeZakazInWork(IRabochiService serviceI, IMainService serviceM)
+        public FormTakeZakazInWork()
         {
             InitializeComponent();
-            this.serviceI = serviceI;
-            this.serviceM = serviceM;
         }
 
         private void FormTakeZakazInWork_Load(object sender, EventArgs e)
@@ -44,13 +26,21 @@ namespace AbstractShopView
                     MessageBox.Show("Не указан заказ", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     Close();
                 }
-                List<RabochiViewModel> listI = serviceI.GetList();
-                if (listI != null)
+                var response = APIClient.GetRequest("api/Implementer/GetList");
+                if (response.Result.IsSuccessStatusCode)
                 {
-                    comboBoxImplementer.DisplayMember = "RabochiFIO";
-                    comboBoxImplementer.ValueMember = "Id";
-                    comboBoxImplementer.DataSource = listI;
-                    comboBoxImplementer.SelectedItem = null;
+                    List<RabochiViewModel> list = APIClient.GetElement<List<RabochiViewModel>>(response);
+                    if (list != null)
+                    {
+                        comboBoxImplementer.DisplayMember = "ImplementerFIO";
+                        comboBoxImplementer.ValueMember = "Id";
+                        comboBoxImplementer.DataSource = list;
+                        comboBoxImplementer.SelectedItem = null;
+                    }
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
                 }
             }
             catch (Exception ex)
@@ -68,14 +58,21 @@ namespace AbstractShopView
             }
             try
             {
-                serviceM.TakeZakazInWork(new ZakazBindingModel
+                var response = APIClient.PostRequest("api/Main/TakeZakazInWork", new ZakazBindingModel
                 {
                     Id = id.Value,
                     RabochiId = Convert.ToInt32(comboBoxImplementer.SelectedValue)
                 });
-                MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                DialogResult = DialogResult.OK;
-                Close();
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    DialogResult = DialogResult.OK;
+                    Close();
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
+                }
             }
             catch (Exception ex)
             {

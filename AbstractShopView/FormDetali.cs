@@ -1,28 +1,21 @@
 ﻿using AbstractShopService.BindingModels;
-using AbstractShopService.Interfaces;
 using AbstractShopService.ViewModels;
 using System;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.Windows.Forms;
-using Unity;
-using Unity.Attributes;
 
 namespace AbstractShopView
 {
     public partial class FormDetali : Form
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
         public int Id { set { id = value; } }
-
-        private readonly IDetaliService service;
 
         private int? id;
 
-        public FormDetali(IDetaliService service)
+        public FormDetali()
         {
             InitializeComponent();
-            this.service = service;
         }
 
         private void FormDetali_Load(object sender, EventArgs e)
@@ -31,10 +24,15 @@ namespace AbstractShopView
             {
                 try
                 {
-                    DetaliViewModel view = service.GetElement(id.Value);
-                    if (view != null)
+                    var response = APIClient.GetRequest("api/Detali/Get/" + id.Value);
+                    if (response.Result.IsSuccessStatusCode)
                     {
-                        textBoxName.Text = view.DetaliName;
+                        var Detali = APIClient.GetElement<DetaliViewModel>(response);
+                        textBoxName.Text = Detali.DetaliName;
+                    }
+                    else
+                    {
+                        throw new Exception(APIClient.GetError(response));
                     }
                 }
                 catch (Exception ex)
@@ -53,9 +51,10 @@ namespace AbstractShopView
             }
             try
             {
+                Task<HttpResponseMessage> response;
                 if (id.HasValue)
                 {
-                    service.UpdElement(new DetaliBindingModel
+                    response = APIClient.PostRequest("api/Detali/UpdElement", new DetaliBindingModel
                     {
                         Id = id.Value,
                         DetaliName = textBoxName.Text
@@ -63,14 +62,21 @@ namespace AbstractShopView
                 }
                 else
                 {
-                    service.AddElement(new DetaliBindingModel
+                    response = APIClient.PostRequest("api/Detali/AddElement", new DetaliBindingModel
                     {
                         DetaliName = textBoxName.Text
                     });
                 }
-                MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                DialogResult = DialogResult.OK;
-                Close();
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    DialogResult = DialogResult.OK;
+                    Close();
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
+                }
             }
             catch (Exception ex)
             {

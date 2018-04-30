@@ -125,7 +125,6 @@
             this.Name = "FormZakazchikZakazs";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Заказы клиентов";
-           
             this.panel.ResumeLayout(false);
             this.panel.PerformLayout();
             this.ResumeLayout(false);
