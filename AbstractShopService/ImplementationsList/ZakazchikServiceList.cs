@@ -27,15 +27,6 @@ namespace AbstractShopService.ImplementationsList
                 })
                 .ToList();
             return result;
-
-            List<ZakazchikViewModel> result1 = (from rec in source.Zakazchiks
-                                                select new ZakazchikViewModel
-                                                {
-                                                    Id = rec.Id,
-                                                    ZakazchikFIO = rec.ZakazchikFIO
-                                                }).ToList();
-
-             return result1;
         }
 
         public ZakazchikViewModel GetElement(int id)
