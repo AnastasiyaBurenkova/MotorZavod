@@ -13,7 +13,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 
         [Required]
         public string ZakazchikFIO { get; set; }
+        public string Mail { get; set; }
         [ForeignKey("ZakazchikId")]
        public virtual List<Zakaz> Zakazs { get; set; }
+        [ForeignKey("ZakazchikId")]
+        public virtual List<MessageInfo> MessageInfos { get; set; }
     }
 }

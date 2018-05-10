@@ -49,6 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MessageInfo.cs" />
     <Compile Include="Zakazchik.cs" />
     <Compile Include="Detali.cs" />
     <Compile Include="Rabochi.cs" />
