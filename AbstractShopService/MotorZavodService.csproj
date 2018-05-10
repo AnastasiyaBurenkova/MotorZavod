@@ -30,7 +30,16 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -40,6 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AbstractDbContext.cs" />
     <Compile Include="BindingModels\ZakazchikBindingModel.cs" />
     <Compile Include="BindingModels\DetaliBindingModel.cs" />
     <Compile Include="BindingModels\RabochiBindingModel.cs" />
@@ -49,6 +59,12 @@
     <Compile Include="BindingModels\GarazhBindingModel.cs" />
     <Compile Include="BindingModels\GarazhDetaliBindingModel.cs" />
     <Compile Include="DataList.cs" />
+    <Compile Include="ImplementationsBD\DetaliServiceBD.cs" />
+    <Compile Include="ImplementationsBD\DvigateliServiceBD.cs" />
+    <Compile Include="ImplementationsBD\GarazhServiceBD.cs" />
+    <Compile Include="ImplementationsBD\MainServiceBD.cs" />
+    <Compile Include="ImplementationsBD\RabochiServiceBD.cs" />
+    <Compile Include="ImplementationsBD\ZakazchikServiceBD.cs" />
     <Compile Include="ImplementationsList\ZakazchikServiceList.cs" />
     <Compile Include="ImplementationsList\DetaliServiceList.cs" />
     <Compile Include="ImplementationsList\RabochiServiceList.cs" />
@@ -61,6 +77,11 @@
     <Compile Include="Interfaces\IMainService.cs" />
     <Compile Include="Interfaces\IDvigateliService.cs" />
     <Compile Include="Interfaces\IGarazhService.cs" />
+    <Compile Include="Migrations\201803100852017_FirstMigration.cs" />
+    <Compile Include="Migrations\201803100852017_FirstMigration.Designer.cs">
+      <DependentUpon>201803100852017_FirstMigration.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ViewModels\ZakazchikViewModel.cs" />
     <Compile Include="ViewModels\DetaliViewModel.cs" />
@@ -76,6 +97,15 @@
       <Project>{5edcfafa-0f3a-4810-8489-4d221a86ad1e}</Project>
       <Name>MotorZavodModel</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\201803100852017_FirstMigration.resx">
+      <DependentUpon>201803100852017_FirstMigration.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
