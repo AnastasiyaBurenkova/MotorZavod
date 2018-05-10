@@ -53,7 +53,9 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -63,6 +65,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AbstractDbContext.cs" />
+    <Compile Include="BindingModels\MessageInfoBindingModel.cs" />
     <Compile Include="BindingModels\ReportBindingModel.cs" />
     <Compile Include="BindingModels\ZakazchikBindingModel.cs" />
     <Compile Include="BindingModels\DetaliBindingModel.cs" />
@@ -77,6 +80,7 @@
     <Compile Include="ImplementationsBD\DvigateliServiceBD.cs" />
     <Compile Include="ImplementationsBD\GarazhServiceBD.cs" />
     <Compile Include="ImplementationsBD\MainServiceBD.cs" />
+    <Compile Include="ImplementationsBD\MessageInfoServiceBD.cs" />
     <Compile Include="ImplementationsBD\RabochiServiceBD.cs" />
     <Compile Include="ImplementationsBD\ReportServiceBD.cs" />
     <Compile Include="ImplementationsBD\ZakazchikServiceBD.cs" />
@@ -86,6 +90,7 @@
     <Compile Include="ImplementationsList\MainServiceList.cs" />
     <Compile Include="ImplementationsList\DvigateliServiceList.cs" />
     <Compile Include="ImplementationsList\GarazhServiceList.cs" />
+    <Compile Include="Interfaces\IMessageInfoService.cs" />
     <Compile Include="Interfaces\IReportService.cs" />
     <Compile Include="Interfaces\IZakazchikService.cs" />
     <Compile Include="Interfaces\IDetaliService.cs" />
@@ -93,9 +98,9 @@
     <Compile Include="Interfaces\IMainService.cs" />
     <Compile Include="Interfaces\IDvigateliService.cs" />
     <Compile Include="Interfaces\IGarazhService.cs" />
-    <Compile Include="Migrations\201803100852017_FirstMigration.cs" />
-    <Compile Include="Migrations\201803100852017_FirstMigration.Designer.cs">
-      <DependentUpon>201803100852017_FirstMigration.cs</DependentUpon>
+    <Compile Include="Migrations\201805050927103_FirstMigration.cs" />
+    <Compile Include="Migrations\201805050927103_FirstMigration.Designer.cs">
+      <DependentUpon>201805050927103_FirstMigration.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -105,6 +110,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="ViewModels\GarazhsLoadViewModel.cs" />
+    <Compile Include="ViewModels\MessageInfoViewModel.cs" />
     <Compile Include="ViewModels\ZakazchikViewModel.cs" />
     <Compile Include="ViewModels\DetaliViewModel.cs" />
     <Compile Include="ViewModels\RabochiViewModel.cs" />
@@ -127,8 +133,8 @@
     <None Include="Resources\TIMCYR.TTF" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201803100852017_FirstMigration.resx">
-      <DependentUpon>201803100852017_FirstMigration.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201805050927103_FirstMigration.resx">
+      <DependentUpon>201805050927103_FirstMigration.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
