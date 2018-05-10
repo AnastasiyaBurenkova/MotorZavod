@@ -134,6 +134,7 @@
     <Compile Include="Controllers\DvigateliController.cs" />
     <Compile Include="Controllers\GarazhController.cs" />
     <Compile Include="Controllers\MainController.cs" />
+    <Compile Include="Controllers\MessageInfoController.cs" />
     <Compile Include="Controllers\RabochiController.cs" />
     <Compile Include="Controllers\ReportController.cs" />
     <Compile Include="Controllers\ZakazchikController.cs" />
