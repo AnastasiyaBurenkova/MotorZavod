@@ -191,7 +191,6 @@ namespace AbstractShopView
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "FormMain";
             this.Text = "Моторный завод";
-            this.Load += new System.EventHandler(this.FormMain_Load);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).EndInit();
