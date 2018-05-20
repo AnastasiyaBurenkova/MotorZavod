@@ -142,6 +142,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\ReflectionService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

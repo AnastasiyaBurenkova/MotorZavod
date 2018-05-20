@@ -2,6 +2,7 @@
 using AbstractShopService.Interfaces;
 using System;
 using System.Web.Http;
+using AbstractShopRestApi.Services;
 
 namespace AbstractShopRestApi.Controllers
 {
@@ -53,6 +54,17 @@ namespace AbstractShopRestApi.Controllers
         public void PutDetaliOnGarazh(GarazhDetaliBindingModel model)
         {
             _service.PutDetaliOnGarazh(model);
+        }
+        [HttpGet]
+        public IHttpActionResult GetInfo()
+        {
+            ReflectionService service = new ReflectionService();
+            var list = service.GetInfoByAssembly();
+            if (list == null)
+            {
+                InternalServerError(new Exception("Нет данных"));
+            }
+            return Ok(list);
         }
     }
 }
