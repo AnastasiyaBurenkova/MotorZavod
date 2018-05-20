@@ -36,7 +36,7 @@ namespace AbstractShopView
             currentContainer.RegisterType<IDvigateliService, DvigateliServiceBD>(new HierarchicalLifetimeManager());
             currentContainer.RegisterType<IGarazhService, GarazhServiceBD>(new HierarchicalLifetimeManager());
             currentContainer.RegisterType<IMainService, MainServiceBD>(new HierarchicalLifetimeManager());
-
+            currentContainer.RegisterType<IReportService, ReportServiceBD>(new HierarchicalLifetimeManager());
             return currentContainer;
         }
     }
