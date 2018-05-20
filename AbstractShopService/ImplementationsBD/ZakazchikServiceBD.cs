@@ -23,7 +23,8 @@ namespace AbstractShopService.ImplementationsBD
                 .Select(rec => new ZakazchikViewModel
                 {
                     Id = rec.Id,
-                    ZakazchikFIO = rec.ZakazchikFIO
+                    ZakazchikFIO = rec.ZakazchikFIO,
+                    Mail = rec.Mail
                 })
                 .ToList();
             return result;
@@ -37,7 +38,18 @@ namespace AbstractShopService.ImplementationsBD
                 return new ZakazchikViewModel
                 {
                     Id = element.Id,
-                    ZakazchikFIO = element.ZakazchikFIO
+                    ZakazchikFIO = element.ZakazchikFIO,
+                    Mail = element.Mail,
+                    Messages = context.MessageInfos
+                            .Where(recM => recM.ZakazchikId == element.Id)
+                            .Select(recM => new MessageInfoViewModel
+                            {
+                                MessageId = recM.MessageId,
+                                DateDelivery = recM.DateDelivery,
+                                Subject = recM.Subject,
+                                Body = recM.Body
+                            })
+                            .ToList()
                 };
             }
             throw new Exception("Элемент не найден");
@@ -52,7 +64,8 @@ namespace AbstractShopService.ImplementationsBD
             }
             context.Zakazchiks.Add(new Zakazchik
             {
-                ZakazchikFIO = model.ZakazchikFIO
+                ZakazchikFIO = model.ZakazchikFIO,
+                Mail = model.Mail
             });
             context.SaveChanges();
         }
@@ -71,6 +84,7 @@ namespace AbstractShopService.ImplementationsBD
                 throw new Exception("Элемент не найден");
             }
             element.ZakazchikFIO = model.ZakazchikFIO;
+            element.Mail = model.Mail;
             context.SaveChanges();
         }
 

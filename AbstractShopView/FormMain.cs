@@ -190,5 +190,10 @@ namespace AbstractShopView
             var form = new FormZakazchikZakazs();
             form.ShowDialog();
         }
-    }
+        private void письмаToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var form = new FormMails();
+            form.ShowDialog();
+        }
+}
 }
