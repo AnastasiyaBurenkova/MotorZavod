@@ -130,7 +130,7 @@ namespace AbstractShopService.ImplementationsBD
             {
                 GarazhName = Garazh.GarazhName,
                 TotalCount = GarazhCompList.Sum(r => r.Count),
-                Components = GarazhCompList.Select(r => new Tuple<string, int>(r.Detali.DetaliName, r.Count))
+                Components = GarazhCompList.Select(r => new GarazhsDetaliLoadViewModel { DetaliName = r.Detali.DetaliName, Count = r.Count }).ToList()
             })
                             .ToList();
         }
@@ -217,9 +217,9 @@ namespace AbstractShopService.ImplementationsBD
 
                             foreach (var listElem in elem.Components)
                             {
-                                excelcells.Value2 = listElem.Item1;
+                                excelcells.Value2 = listElem.DetaliName;
                                 excelcells.ColumnWidth = 10;
-                                excelcells.get_Offset(0, 1).Value2 = listElem.Item2;
+                                excelcells.get_Offset(0, 1).Value2 = listElem.Count;
                                 excelcells = excelcells.get_Offset(1, 0);
                             }
                         }

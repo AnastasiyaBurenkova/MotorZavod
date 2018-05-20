@@ -1,24 +1,16 @@
-﻿using AbstractShopService.Interfaces;
+﻿using AbstractShopService.BindingModels;
 using AbstractShopService.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
-using Unity;
-using Unity.Attributes;
 
 namespace AbstractShopView
 {
     public partial class FormGarazhs : Form
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
-        private readonly IGarazhService service;
-
-        public FormGarazhs(IGarazhService service)
+        public FormGarazhs()
         {
             InitializeComponent();
-            this.service = service;
         }
 
         private void FormStocks_Load(object sender, EventArgs e)
@@ -30,12 +22,20 @@ namespace AbstractShopView
         {
             try
             {
-                List<GarazhViewModel> list = service.GetList();
-                if (list != null)
+                var response = APIClient.GetRequest("api/Garazh/GetList");
+                if (response.Result.IsSuccessStatusCode)
                 {
-                    dataGridView.DataSource = list;
-                    dataGridView.Columns[0].Visible = false;
-                    dataGridView.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                    List<GarazhViewModel> list = APIClient.GetElement<List<GarazhViewModel>>(response);
+                    if (list != null)
+                    {
+                        dataGridView.DataSource = list;
+                        dataGridView.Columns[0].Visible = false;
+                        dataGridView.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                    }
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
                 }
             }
             catch (Exception ex)
@@ -46,7 +46,7 @@ namespace AbstractShopView
 
         private void buttonAdd_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormGarazh>();
+            var form = new FormGarazh();
             if (form.ShowDialog() == DialogResult.OK)
             {
                 LoadData();
@@ -57,7 +57,7 @@ namespace AbstractShopView
         {
             if (dataGridView.SelectedRows.Count == 1)
             {
-                var form = Container.Resolve<FormGarazh>();
+                var form = new FormGarazh();
                 form.Id = Convert.ToInt32(dataGridView.SelectedRows[0].Cells[0].Value);
                 if (form.ShowDialog() == DialogResult.OK)
                 {
@@ -75,7 +75,11 @@ namespace AbstractShopView
                     int id = Convert.ToInt32(dataGridView.SelectedRows[0].Cells[0].Value);
                     try
                     {
-                        service.DelElement(id);
+                        var response = APIClient.PostRequest("api/Garazh/DelElement", new ZakazchikBindingModel { Id = id });
+                        if (!response.Result.IsSuccessStatusCode)
+                        {
+                            throw new Exception(APIClient.GetError(response));
+                        }
                     }
                     catch (Exception ex)
                     {

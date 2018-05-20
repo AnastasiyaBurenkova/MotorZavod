@@ -1,28 +1,21 @@
 ﻿using AbstractShopService.BindingModels;
-using AbstractShopService.Interfaces;
 using AbstractShopService.ViewModels;
 using System;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.Windows.Forms;
-using Unity;
-using Unity.Attributes;
 
 namespace AbstractShopView
 {
     public partial class FormRabochi : Form
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
         public int Id { set { id = value; } }
-
-        private readonly IRabochiService service;
 
         private int? id;
 
-        public FormRabochi(IRabochiService service)
+        public FormRabochi()
         {
             InitializeComponent();
-            this.service = service;
         }
 
         private void FormImplementer_Load(object sender, EventArgs e)
@@ -31,10 +24,15 @@ namespace AbstractShopView
             {
                 try
                 {
-                    RabochiViewModel view = service.GetElement(id.Value);
-                    if (view != null)
+                    var response = APIClient.GetRequest("api/Rabochi/Get/" + id.Value);
+                    if (response.Result.IsSuccessStatusCode)
                     {
-                        textBoxFIO.Text = view.RabochiFIO;
+                        var Rabochi = APIClient.GetElement<RabochiViewModel>(response);
+                        textBoxFIO.Text = Rabochi.RabochiFIO;
+                    }
+                    else
+                    {
+                        throw new Exception(APIClient.GetError(response));
                     }
                 }
                 catch (Exception ex)
@@ -53,9 +51,10 @@ namespace AbstractShopView
             }
             try
             {
+                Task<HttpResponseMessage> response;
                 if (id.HasValue)
                 {
-                    service.UpdElement(new RabochiBindingModel
+                    response = APIClient.PostRequest("api/Rabochi/UpdElement", new RabochiBindingModel
                     {
                         Id = id.Value,
                         RabochiFIO = textBoxFIO.Text
@@ -63,14 +62,21 @@ namespace AbstractShopView
                 }
                 else
                 {
-                    service.AddElement(new RabochiBindingModel
+                    response = APIClient.PostRequest("api/Rabochi/AddElement", new RabochiBindingModel
                     {
                         RabochiFIO = textBoxFIO.Text
                     });
                 }
-                MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                DialogResult = DialogResult.OK;
-                Close();
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    DialogResult = DialogResult.OK;
+                    Close();
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
+                }
             }
             catch (Exception ex)
             {

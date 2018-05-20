@@ -1,28 +1,21 @@
 ﻿using AbstractShopService.BindingModels;
-using AbstractShopService.Interfaces;
 using AbstractShopService.ViewModels;
 using System;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.Windows.Forms;
-using Unity;
-using Unity.Attributes;
 
 namespace AbstractShopView
 {
     public partial class FormGarazh : Form
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
         public int Id { set { id = value; } }
-
-        private readonly IGarazhService service;
 
         private int? id;
 
-        public FormGarazh(IGarazhService service)
+        public FormGarazh()
         {
             InitializeComponent();
-            this.service = service;
         }
 
         private void FormStock_Load(object sender, EventArgs e)
@@ -31,15 +24,20 @@ namespace AbstractShopView
             {
                 try
                 {
-                    GarazhViewModel view = service.GetElement(id.Value);
-                    if (view != null)
+                    var response = APIClient.GetRequest("api/Garazh/Get/" + id.Value);
+                    if (response.Result.IsSuccessStatusCode)
                     {
-                        textBoxName.Text = view.GarazhName;
-                        dataGridView.DataSource = view.GarazhDetalis;
+                        var Garazh = APIClient.GetElement<GarazhViewModel>(response);
+                        textBoxName.Text = Garazh.GarazhName;
+                        dataGridView.DataSource = Garazh.GarazhDetalis;
                         dataGridView.Columns[0].Visible = false;
                         dataGridView.Columns[1].Visible = false;
                         dataGridView.Columns[2].Visible = false;
                         dataGridView.Columns[3].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                    }
+                    else
+                    {
+                        throw new Exception(APIClient.GetError(response));
                     }
                 }
                 catch (Exception ex)
@@ -58,9 +56,10 @@ namespace AbstractShopView
             }
             try
             {
+                Task<HttpResponseMessage> response;
                 if (id.HasValue)
                 {
-                    service.UpdElement(new GarazhBindingModel
+                    response = APIClient.PostRequest("api/Garazh/UpdElement", new GarazhBindingModel
                     {
                         Id = id.Value,
                         GarazhName = textBoxName.Text
@@ -68,14 +67,21 @@ namespace AbstractShopView
                 }
                 else
                 {
-                    service.AddElement(new GarazhBindingModel
+                    response = APIClient.PostRequest("api/Garazh/AddElement", new GarazhBindingModel
                     {
                         GarazhName = textBoxName.Text
                     });
                 }
-                MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                DialogResult = DialogResult.OK;
-                Close();
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    DialogResult = DialogResult.OK;
+                    Close();
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
+                }
             }
             catch (Exception ex)
             {

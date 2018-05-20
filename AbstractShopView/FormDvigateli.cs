@@ -1,31 +1,24 @@
 ﻿using AbstractShopService.BindingModels;
-using AbstractShopService.Interfaces;
 using AbstractShopService.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.Windows.Forms;
-using Unity;
-using Unity.Attributes;
 
 namespace AbstractShopView
 {
     public partial class FormDvigateli : Form
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
         public int Id { set { id = value; } }
-
-        private readonly IDvigateliService service;
 
         private int? id;
 
-        private List<DvigateliDetaliViewModel> productComponents;
+        private List<DvigateliDetaliViewModel> DvigateliDetalis;
 
-        public FormDvigateli(IDvigateliService service)
+        public FormDvigateli()
         {
             InitializeComponent();
-            this.service = service;
         }
 
         private void FormProduct_Load(object sender, EventArgs e)
@@ -34,13 +27,18 @@ namespace AbstractShopView
             {
                 try
                 {
-                    DvigateliViewModel view = service.GetElement(id.Value);
-                    if (view != null)
+                    var response = APIClient.GetRequest("api/Dvigateli/Get/" + id.Value);
+                    if (response.Result.IsSuccessStatusCode)
                     {
-                        textBoxName.Text = view.DvigateliName;
-                        textBoxPrice.Text = view.Price.ToString();
-                        productComponents = view.DvigateliDetalis;
+                        var Dvigateli = APIClient.GetElement<DvigateliViewModel>(response);
+                        textBoxName.Text = Dvigateli.DvigateliName;
+                        textBoxPrice.Text = Dvigateli.Price.ToString();
+                        DvigateliDetalis = Dvigateli.DvigateliDetalis;
                         LoadData();
+                    }
+                    else
+                    {
+                        throw new Exception(APIClient.GetError(response));
                     }
                 }
                 catch (Exception ex)
@@ -50,7 +48,7 @@ namespace AbstractShopView
             }
             else
             {
-                productComponents = new List<DvigateliDetaliViewModel>();
+                DvigateliDetalis = new List<DvigateliDetaliViewModel>();
             }
         }
 
@@ -58,10 +56,10 @@ namespace AbstractShopView
         {
             try
             {
-                if (productComponents != null)
+                if (DvigateliDetalis != null)
                 {
                     dataGridView.DataSource = null;
-                    dataGridView.DataSource = productComponents;
+                    dataGridView.DataSource = DvigateliDetalis;
                     dataGridView.Columns[0].Visible = false;
                     dataGridView.Columns[1].Visible = false;
                     dataGridView.Columns[2].Visible = false;
@@ -76,16 +74,16 @@ namespace AbstractShopView
 
         private void buttonAdd_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormDvigateliComponent>();
+            var form = new FormDvigateliComponent();
             if (form.ShowDialog() == DialogResult.OK)
             {
-                if(form.Model != null)
+                if (form.Model != null)
                 {
-                    if(id.HasValue)
+                    if (id.HasValue)
                     {
                         form.Model.DvigateliId = id.Value;
                     }
-                    productComponents.Add(form.Model);
+                    DvigateliDetalis.Add(form.Model);
                 }
                 LoadData();
             }
@@ -95,11 +93,11 @@ namespace AbstractShopView
         {
             if (dataGridView.SelectedRows.Count == 1)
             {
-                var form = Container.Resolve<FormDvigateliComponent>();
-                form.Model = productComponents[dataGridView.SelectedRows[0].Cells[0].RowIndex];
+                var form = new FormDvigateliComponent();
+                form.Model = DvigateliDetalis[dataGridView.SelectedRows[0].Cells[0].RowIndex];
                 if (form.ShowDialog() == DialogResult.OK)
                 {
-                    productComponents[dataGridView.SelectedRows[0].Cells[0].RowIndex] = form.Model;
+                    DvigateliDetalis[dataGridView.SelectedRows[0].Cells[0].RowIndex] = form.Model;
                     LoadData();
                 }
             }
@@ -113,7 +111,7 @@ namespace AbstractShopView
                 {
                     try
                     {
-                        productComponents.RemoveAt(dataGridView.SelectedRows[0].Cells[0].RowIndex);
+                        DvigateliDetalis.RemoveAt(dataGridView.SelectedRows[0].Cells[0].RowIndex);
                     }
                     catch (Exception ex)
                     {
@@ -141,46 +139,54 @@ namespace AbstractShopView
                 MessageBox.Show("Заполните цену", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            if (productComponents == null || productComponents.Count == 0)
+            if (DvigateliDetalis == null || DvigateliDetalis.Count == 0)
             {
                 MessageBox.Show("Заполните компоненты", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             try
             {
-                List<DvigateliDetaliBindingModel> productComponentBM = new List<DvigateliDetaliBindingModel>();
-                for (int i = 0; i < productComponents.Count; ++i)
+                List<DvigateliDetaliBindingModel> DvigateliDetaliBM = new List<DvigateliDetaliBindingModel>();
+                for (int i = 0; i < DvigateliDetalis.Count; ++i)
                 {
-                    productComponentBM.Add(new DvigateliDetaliBindingModel
+                    DvigateliDetaliBM.Add(new DvigateliDetaliBindingModel
                     {
-                        Id = productComponents[i].Id,
-                        DvigateliId = productComponents[i].DvigateliId,
-                        DetaliId = productComponents[i].DetaliId,
-                        Count = productComponents[i].Count
+                        Id = DvigateliDetalis[i].Id,
+                        DvigateliId = DvigateliDetalis[i].DvigateliId,
+                        DetaliId = DvigateliDetalis[i].DetaliId,
+                        Count = DvigateliDetalis[i].Count
                     });
                 }
+                Task<HttpResponseMessage> response;
                 if (id.HasValue)
                 {
-                    service.UpdElement(new DvigateliBindingModel
+                    response = APIClient.PostRequest("api/Dvigateli/UpdElement", new DvigateliBindingModel
                     {
                         Id = id.Value,
                         DvigateliName = textBoxName.Text,
                         Price = Convert.ToInt32(textBoxPrice.Text),
-                        DvigateliDetalis = productComponentBM
+                        DvigateliDetalis = DvigateliDetaliBM
                     });
                 }
                 else
                 {
-                    service.AddElement(new DvigateliBindingModel
+                    response = APIClient.PostRequest("api/Dvigateli/AddElement", new DvigateliBindingModel
                     {
                         DvigateliName = textBoxName.Text,
                         Price = Convert.ToInt32(textBoxPrice.Text),
-                        DvigateliDetalis = productComponentBM
+                        DvigateliDetalis = DvigateliDetaliBM
                     });
                 }
-                MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                DialogResult = DialogResult.OK;
-                Close();
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    DialogResult = DialogResult.OK;
+                    Close();
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
+                }
             }
             catch (Exception ex)
             {
