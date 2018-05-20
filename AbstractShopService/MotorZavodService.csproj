@@ -65,6 +65,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AbstractDbContext.cs" />
+    <Compile Include="Attributies\CustomInterfaceAttribute.cs" />
+    <Compile Include="Attributies\CustomMethodAttribute.cs" />
     <Compile Include="BindingModels\MessageInfoBindingModel.cs" />
     <Compile Include="BindingModels\ReportBindingModel.cs" />
     <Compile Include="BindingModels\ZakazchikBindingModel.cs" />
