@@ -1,8 +1,5 @@
-﻿using AbstractShopService.Interfaces;
-using AbstractShopService.ViewModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,13 +11,14 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using AbstractShopService.Interfaces;
+using AbstractShopService.ViewModels;
 using Unity;
 using Unity.Attributes;
-
 namespace WpfMotorZavod
 {
     /// <summary>
-    /// Логика взаимодействия для Garazhs.xaml
+    /// Логика взаимодействия для FormGarazhs.xaml
     /// </summary>
     public partial class FormGarazhs : Window
     {
@@ -71,7 +69,7 @@ namespace WpfMotorZavod
             if (dataGridViewGarazhs.SelectedItem != null)
             {
                 var form = Container.Resolve<FormGarazh>();
-                form.ID = ((GarazhViewModel)dataGridViewGarazhs.SelectedItem).Id;
+                form.Id = ((GarazhViewModel)dataGridViewGarazhs.SelectedItem).Id;
                 if (form.ShowDialog() == true)
                 {
                     LoadData();

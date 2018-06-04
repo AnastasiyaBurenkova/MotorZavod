@@ -4,6 +4,6 @@
              xmlns:local="clr-namespace:WpfMotorZavod"
              StartupUri="FormMain.xaml">
     <Application.Resources>
-
+         
     </Application.Resources>
 </Application>

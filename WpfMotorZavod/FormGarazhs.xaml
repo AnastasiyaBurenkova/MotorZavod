@@ -3,8 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfMotorZavod"
         mc:Ignorable="d"
-        Title="Список складов" Height="351" Width="480">
+        Title="Список гаражей" Height="351" Width="480">
     <Grid Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
         <DataGrid x:Name="dataGridViewGarazhs" HorizontalAlignment="Left" Height="312" VerticalAlignment="Top" Width="350" Background="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}" IsReadOnly="True"/>
         <Button x:Name="buttonAdd" Content="Добавить" HorizontalAlignment="Left" Margin="374,29,0,0" VerticalAlignment="Top" Width="74" Click="buttonAdd_Click"/>
@@ -14,4 +15,3 @@
 
     </Grid>
 </Window>
-

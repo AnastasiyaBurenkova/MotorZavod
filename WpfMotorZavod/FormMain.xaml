@@ -3,33 +3,32 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfMotorZavod"
         mc:Ignorable="d"
-        Title="Моторный завод" Height="340" Width="1081.5" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+      Title="Моторный завод" Height="340" Width="1081.5" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
     <Grid>
         <Menu x:Name="menu" HorizontalAlignment="Left" Height="22" VerticalAlignment="Top" Width="1047" Margin="10,0,0,0">
-            <MenuItem Header="Справочники" Height="22" Width="177" RenderTransformOrigin="0.5,0.5">
-                <MenuItem.RenderTransform>
-                    <TransformGroup>
-                        <ScaleTransform/>
-                        <SkewTransform/>
-                        <RotateTransform Angle="-0.443"/>
-                        <TranslateTransform/>
-                    </TransformGroup>
-                </MenuItem.RenderTransform>
-                <MenuItem Header="Клиенты" HorizontalAlignment="Left" Height="28" Width="149" Margin="0,0,-9,0" Click="клиентыToolStripMenuItem_Click"/>
-                <MenuItem Header="Компоненты" HorizontalAlignment="Left" Height="24" Width="181" Margin="0,0,-41,0" Click="компонентыToolStripMenuItem_Click"/>
-                <MenuItem Header="Изделия" HorizontalAlignment="Left" Height="28" Width="164" Margin="0,0,-24,0" Click="изделияToolStripMenuItem_Click"/>
-                <MenuItem Header="Склады" HorizontalAlignment="Left" Height="28" Width="146" Margin="0,0,-6,0" Click="складыToolStripMenuItem_Click"/>
-                <MenuItem Header="Сотрудники" HorizontalAlignment="Left" Height="28" Width="178" Margin="0,0,-38,0" Click="сотрудникиToolStripMenuItem_Click"/>
+            <MenuItem Header="Справочники" Height="22" Width="105">
+                <MenuItem Header="Клиенты" HorizontalAlignment="Left" Height="28" Width="135" Margin="0,0,-21,0" Click="получателиToolStripMenuItem_Click"/>
+                <MenuItem Header="Детали" HorizontalAlignment="Left" Height="24" Width="158" Margin="0,0,-18,0" Click="заготовкиToolStripMenuItem_Click"/>
+                <MenuItem Header="Двигатели" HorizontalAlignment="Left" Height="28" Width="135" Margin="0,0,-21,0" Click="мебельToolStripMenuItem_Click"/>
+                <MenuItem Header="Гаражи" HorizontalAlignment="Left" Height="28" Width="135" Margin="0,0,-21,0" Click="базыToolStripMenuItem_Click"/>
+                <MenuItem Header="Рабочие" HorizontalAlignment="Left" Height="28" Width="161" Margin="0,0,-21,0" Click="рабочиеToolStripMenuItem_Click"/>
 
             </MenuItem>
-            <MenuItem Header="Пополнить склад" Height="22" Width="135" Click="пополнитьСкладToolStripMenuItem_Click"/>
+            <MenuItem Header="Пополнить гараж" Height="22" Width="135" Click="пополнитьБазуToolStripMenuItem_Click"/>
+            <MenuItem Header="Отчеты" Height="22" Width="100">
+                <MenuItem Header="Прайс двигателей" HorizontalAlignment="Left" Height="35" Width="190" Margin="0,0,-50,0" Click="прайсМебелиToolStripMenuItem_Click"/>
+                <MenuItem Header="Загруженность гаражей" Height="38" Margin="1,0,-20,0" Click="загруженностьБазToolStripMenuItem_Click"/>
+                <MenuItem Header="Заказы клиентов" Height="37" Margin="0,0,-33,0" Click="заказыПолучателейToolStripMenuItem_Click"/>
+            </MenuItem>
         </Menu>
         <DataGrid x:Name="dataGridViewMain" HorizontalAlignment="Left" Height="272" Margin="0,27,0,0" VerticalAlignment="Top" Width="880" IsReadOnly="True"/>
-        <Button x:Name="buttonCreateOrder" Content="Создать заказ" HorizontalAlignment="Left" Margin="909,48,0,0" VerticalAlignment="Top" Width="138" Height="28" Click="buttonCreateOrder_Click"/>
-        <Button x:Name="buttonTakeOrderInWork" Content="Отдать на выполнение" HorizontalAlignment="Left" Margin="909,100,0,0" VerticalAlignment="Top" Width="138" Height="28" Click="buttonTakeOrderInWork_Click"/>
-        <Button x:Name="buttonOrderReady" Content="Заказ готов" HorizontalAlignment="Left" Margin="909,154,0,0" VerticalAlignment="Top" Width="138" Height="28" Click="buttonOrderReady_Click"/>
-        <Button x:Name="buttonPayOrder" Content="Заказ оплачен" HorizontalAlignment="Left" Margin="909,202,0,0" VerticalAlignment="Top" Width="138" Height="28" Click="buttonPayOrder_Click"/>
+        <Button x:Name="buttonCreateZakaz" Content="Создать заказ" HorizontalAlignment="Left" Margin="909,48,0,0" VerticalAlignment="Top" Width="138" Height="28" Click="buttonCreateZakaz_Click"/>
+        <Button x:Name="buttonTakeZakazInWork" Content="Отдать на выполнение" HorizontalAlignment="Left" Margin="909,100,0,0" VerticalAlignment="Top" Width="138" Height="28" Click="buttonTakeZakazInWork_Click"/>
+        <Button x:Name="buttonZakazReady" Content="Заказ готов" HorizontalAlignment="Left" Margin="909,154,0,0" VerticalAlignment="Top" Width="138" Height="28" Click="buttonZakazReady_Click"/>
+        <Button x:Name="buttonPayZakaz" Content="Заказ оплачен" HorizontalAlignment="Left" Margin="909,202,0,0" VerticalAlignment="Top" Width="138" Height="28" Click="buttonPayZakaz_Click"/>
+
         <Button x:Name="buttonRef" Content="Обновить список" HorizontalAlignment="Left" Margin="909,254,0,0" VerticalAlignment="Top" Width="138" Height="28" Click="buttonRef_Click"/>
 
     </Grid>

@@ -1,9 +1,5 @@
-﻿using AbstractShopService.BindingModels;
-using AbstractShopService.Interfaces;
-using AbstractShopService.ViewModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,9 +11,11 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using AbstractShopService.BindingModels;
+using AbstractShopService.Interfaces;
+using AbstractShopService.ViewModels;
 using Unity;
 using Unity.Attributes;
-
 namespace WpfMotorZavod
 {
     /// <summary>
@@ -28,13 +26,13 @@ namespace WpfMotorZavod
         [Dependency]
         public new IUnityContainer Container { get; set; }
 
-        public int ID { set { id = value; } }
+        public int Id { set { id = value; } }
 
         private readonly IDvigateliService service;
 
         private int? id;
 
-        private List<DvigateliDetaliViewModel> productDetalis;
+        private List<DvigateliDetaliViewModel> DvigateliDetalis;
 
         public FormDvigateli(IDvigateliService service)
         {
@@ -54,7 +52,7 @@ namespace WpfMotorZavod
                     {
                         textBoxName.Text = view.DvigateliName;
                         textBoxPrice.Text = view.Price.ToString();
-                        productDetalis = view.DvigateliDetalis;
+                        DvigateliDetalis = view.DvigateliDetalis;
                         LoadData();
                     }
                 }
@@ -64,21 +62,21 @@ namespace WpfMotorZavod
                 }
             }
             else
-                productDetalis = new List<DvigateliDetaliViewModel>();
+                DvigateliDetalis = new List<DvigateliDetaliViewModel>();
         }
 
         private void LoadData()
         {
             try
             {
-                if (productDetalis != null)
+                if (DvigateliDetalis != null)
                 {
-                    dataGridViewProduct.ItemsSource = null;
-                    dataGridViewProduct.ItemsSource = productDetalis;
-                    dataGridViewProduct.Columns[0].Visibility = Visibility.Hidden;
-                    dataGridViewProduct.Columns[1].Visibility = Visibility.Hidden;
-                    dataGridViewProduct.Columns[2].Visibility = Visibility.Hidden;
-                    dataGridViewProduct.Columns[3].Width = DataGridLength.Auto;
+                    dataGridViewDvigateli.ItemsSource = null;
+                    dataGridViewDvigateli.ItemsSource = DvigateliDetalis;
+                    dataGridViewDvigateli.Columns[0].Visibility = Visibility.Hidden;
+                    dataGridViewDvigateli.Columns[1].Visibility = Visibility.Hidden;
+                    dataGridViewDvigateli.Columns[2].Visibility = Visibility.Hidden;
+                    dataGridViewDvigateli.Columns[3].Width = DataGridLength.Auto;
                 }
             }
             catch (Exception ex)
@@ -96,7 +94,7 @@ namespace WpfMotorZavod
                 {
                     if (id.HasValue)
                         form.Model.DvigateliId = id.Value;
-                    productDetalis.Add(form.Model);
+                    DvigateliDetalis.Add(form.Model);
                 }
                 LoadData();
             }
@@ -104,13 +102,13 @@ namespace WpfMotorZavod
 
         private void buttonUpd_Click(object sender, EventArgs e)
         {
-            if (dataGridViewProduct.SelectedItem != null)
+            if (dataGridViewDvigateli.SelectedItem != null)
             {
                 var form = Container.Resolve<FormDvigateliDetali>();
-                form.Model = productDetalis[dataGridViewProduct.SelectedIndex];
+                form.Model = DvigateliDetalis[dataGridViewDvigateli.SelectedIndex];
                 if (form.ShowDialog() == true)
                 {
-                    productDetalis[dataGridViewProduct.SelectedIndex] = form.Model;
+                    DvigateliDetalis[dataGridViewDvigateli.SelectedIndex] = form.Model;
                     LoadData();
                 }
             }
@@ -118,14 +116,14 @@ namespace WpfMotorZavod
 
         private void buttonDel_Click(object sender, EventArgs e)
         {
-            if (dataGridViewProduct.SelectedItem != null)
+            if (dataGridViewDvigateli.SelectedItem != null)
             {
                 if (MessageBox.Show("Удалить запись?", "Внимание",
                     MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                 {
                     try
                     {
-                        productDetalis.RemoveAt(dataGridViewProduct.SelectedIndex);
+                        DvigateliDetalis.RemoveAt(dataGridViewDvigateli.SelectedIndex);
                     }
                     catch (Exception ex)
                     {
@@ -153,22 +151,22 @@ namespace WpfMotorZavod
                 MessageBox.Show("Заполните цену", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
-            if (productDetalis == null || productDetalis.Count == 0)
+            if (DvigateliDetalis == null || DvigateliDetalis.Count == 0)
             {
-                MessageBox.Show("Заполните компоненты", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Заполните заготовки", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
             try
             {
-                List<DvigateliDetaliBindingModel> productDetaliBM = new List<DvigateliDetaliBindingModel>();
-                for (int i = 0; i < productDetalis.Count; ++i)
+                List<DvigateliDetaliBindingModel> productComponentBM = new List<DvigateliDetaliBindingModel>();
+                for (int i = 0; i < DvigateliDetalis.Count; ++i)
                 {
-                    productDetaliBM.Add(new DvigateliDetaliBindingModel
+                    productComponentBM.Add(new DvigateliDetaliBindingModel
                     {
-                        Id = productDetalis[i].Id,
-                        DvigateliId = productDetalis[i].DvigateliId,
-                        DetaliId = productDetalis[i].DetaliId,
-                        Count = productDetalis[i].Count
+                        Id = DvigateliDetalis[i].Id,
+                        DvigateliId = DvigateliDetalis[i].DvigateliId,
+                        DetaliId = DvigateliDetalis[i].DetaliId,
+                        Count = DvigateliDetalis[i].Count
                     });
                 }
                 if (id.HasValue)
@@ -178,7 +176,7 @@ namespace WpfMotorZavod
                         Id = id.Value,
                         DvigateliName = textBoxName.Text,
                         Price = Convert.ToInt32(textBoxPrice.Text),
-                        DvigateliDetalis = productDetaliBM
+                        DvigateliDetalis = productComponentBM
                     });
                 }
                 else
@@ -187,7 +185,7 @@ namespace WpfMotorZavod
                     {
                         DvigateliName = textBoxName.Text,
                         Price = Convert.ToInt32(textBoxPrice.Text),
-                        DvigateliDetalis = productDetaliBM
+                        DvigateliDetalis = productComponentBM
                     });
                 }
                 MessageBox.Show("Сохранение прошло успешно", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);

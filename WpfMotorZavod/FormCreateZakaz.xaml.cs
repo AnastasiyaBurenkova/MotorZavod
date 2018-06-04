@@ -1,5 +1,4 @@
 ﻿using System;
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,12 +11,11 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using Unity;
-using Unity.Attributes;
+using AbstractShopService.BindingModels;
 using AbstractShopService.Interfaces;
 using AbstractShopService.ViewModels;
-using AbstractShopService.BindingModels;
-
+using Unity;
+using Unity.Attributes;
 namespace WpfMotorZavod
 {
     /// <summary>
@@ -28,44 +26,44 @@ namespace WpfMotorZavod
         [Dependency]
         public new IUnityContainer Container { get; set; }
 
-        private readonly IZakazchikService serviceClient;
+        private readonly IZakazchikService serviceP;
 
-        private readonly IDvigateliService serviceProduct;
+        private readonly IDvigateliService serviceM;
 
-        private readonly IMainService serviceMain;
+        private readonly IMainService serviceG;
 
 
-        public FormCreateZakaz(IZakazchikService serviceC, IDvigateliService serviceP, IMainService serviceM)
+        public FormCreateZakaz(IZakazchikService serviceP, IDvigateliService serviceM, IMainService serviceG)
         {
             InitializeComponent();
             Loaded += FormCreateZakaz_Load;
-            comboBoxProduct.SelectionChanged += comboBoxProduct_SelectedIndexChanged;
+            comboBoxDvigateli.SelectionChanged += comboBoxDvigateli_SelectedIndexChanged;
 
-            comboBoxProduct.SelectionChanged += new SelectionChangedEventHandler(comboBoxProduct_SelectedIndexChanged);
-            this.serviceClient = serviceC;
-            this.serviceProduct = serviceP;
-            this.serviceMain = serviceM;
+            comboBoxDvigateli.SelectionChanged += new SelectionChangedEventHandler(comboBoxDvigateli_SelectedIndexChanged);
+            this.serviceP = serviceP;
+            this.serviceM = serviceM;
+            this.serviceG = serviceG;
         }
 
         private void FormCreateZakaz_Load(object sender, EventArgs e)
         {
             try
             {
-                List<ZakazchikViewModel> listClient = serviceClient.GetList();
-                if (listClient != null)
+                List<ZakazchikViewModel> listP = serviceP.GetList();
+                if (listP != null)
                 {
                     comboBoxClient.DisplayMemberPath = "ZakazchikFIO";
                     comboBoxClient.SelectedValuePath = "Id";
-                    comboBoxClient.ItemsSource = listClient;
-                    comboBoxProduct.SelectedItem = null;
+                    comboBoxClient.ItemsSource = listP;
+                    comboBoxDvigateli.SelectedItem = null;
                 }
-                List<DvigateliViewModel> listProduct = serviceProduct.GetList();
-                if (listProduct != null)
+                List<DvigateliViewModel> listM = serviceM.GetList();
+                if (listM != null)
                 {
-                    comboBoxProduct.DisplayMemberPath = "DvigateliName";
-                    comboBoxProduct.SelectedValuePath = "Id";
-                    comboBoxProduct.ItemsSource = listProduct;
-                    comboBoxProduct.SelectedItem = null;
+                    comboBoxDvigateli.DisplayMemberPath = "DvigateliName";
+                    comboBoxDvigateli.SelectedValuePath = "Id";
+                    comboBoxDvigateli.ItemsSource = listM;
+                    comboBoxDvigateli.SelectedItem = null;
                 }
             }
             catch (Exception ex)
@@ -76,12 +74,12 @@ namespace WpfMotorZavod
 
         private void CalcSum()
         {
-            if (comboBoxProduct.SelectedItem != null && !string.IsNullOrEmpty(textBoxCount.Text))
+            if (comboBoxDvigateli.SelectedItem != null && !string.IsNullOrEmpty(textBoxCount.Text))
             {
                 try
                 {
-                    int id = ((DvigateliViewModel)comboBoxProduct.SelectedItem).Id;
-                    DvigateliViewModel product = serviceProduct.GetElement(id);
+                    int id = ((DvigateliViewModel)comboBoxDvigateli.SelectedItem).Id;
+                    DvigateliViewModel product = serviceM.GetElement(id);
                     int count = Convert.ToInt32(textBoxCount.Text);
                     textBoxSum.Text = (count * product.Price).ToString();
                 }
@@ -97,7 +95,7 @@ namespace WpfMotorZavod
             CalcSum();
         }
 
-        private void comboBoxProduct_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBoxDvigateli_SelectedIndexChanged(object sender, EventArgs e)
         {
             CalcSum();
         }
@@ -111,20 +109,20 @@ namespace WpfMotorZavod
             }
             if (comboBoxClient.SelectedItem == null)
             {
-                MessageBox.Show("Выберите клиента", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Выберите получателя", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
-            if (comboBoxProduct.SelectedItem == null)
+            if (comboBoxDvigateli.SelectedItem == null)
             {
-                MessageBox.Show("Выберите изделие", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Выберите мебель", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
             try
             {
-                serviceMain.CreateZakaz(new ZakazBindingModel
+                serviceG.CreateZakaz(new ZakazBindingModel
                 {
                     ZakazchikId = ((ZakazchikViewModel)comboBoxClient.SelectedItem).Id,
-                    DvigateliId = ((DvigateliViewModel)comboBoxProduct.SelectedItem).Id,
+                    DvigateliId = ((DvigateliViewModel)comboBoxDvigateli.SelectedItem).Id,
                     Count = Convert.ToInt32(textBoxCount.Text),
                     Sum = Convert.ToInt32(textBoxSum.Text)
                 });

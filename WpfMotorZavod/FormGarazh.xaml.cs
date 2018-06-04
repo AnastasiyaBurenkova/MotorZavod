@@ -1,7 +1,4 @@
-﻿using AbstractShopService.BindingModels;
-using AbstractShopService.Interfaces;
-using AbstractShopService.ViewModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,20 +11,22 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using AbstractShopService.BindingModels;
+using AbstractShopService.Interfaces;
+using AbstractShopService.ViewModels;
 using Unity;
 using Unity.Attributes;
-
 namespace WpfMotorZavod
 {
     /// <summary>
-    /// Логика взаимодействия для Garazh.xaml
+    /// Логика взаимодействия для FormGarazh.xaml
     /// </summary>
     public partial class FormGarazh : Window
     {
         [Dependency]
         public new IUnityContainer Container { get; set; }
 
-        public int ID { set { id = value; } }
+        public int Id { set { id = value; } }
 
         private readonly IGarazhService service;
 
