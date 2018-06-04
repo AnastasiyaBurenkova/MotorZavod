@@ -1,4 +1,5 @@
 ﻿using AbstractShopService.ViewModels;
+using AbstractShopView;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 namespace WpfMotorZavod
+
 {
     /// <summary>
     /// Логика взаимодействия для FormDvigateliDetali.xaml
@@ -33,21 +35,18 @@ namespace WpfMotorZavod
         {
             try
             {
-                var response = APIClient.GetRequest("api/Detali/GetList");
-                if (response.Result.IsSuccessStatusCode)
-                {
-                    comboBoxDetali.DisplayMemberPath = "DetaliName";
-                    comboBoxDetali.SelectedValuePath = "Id";
-                    comboBoxDetali.ItemsSource = APIClient.GetElement<List<DetaliViewModel>>(response);
-                    comboBoxDetali.SelectedItem = null;
-                }
-                else
-                {
-                    throw new Exception(APIClient.GetError(response));
-                }
+                comboBoxDetali.DisplayMemberPath = "DetaliName";
+                comboBoxDetali.SelectedValuePath = "Id";
+                comboBoxDetali.ItemsSource = Task.Run(() => APIClient.GetRequestData<List<DetaliViewModel>>("api/Detali/GetList")).Result;
+                comboBoxDetali.SelectedItem = null;
+
             }
             catch (Exception ex)
             {
+                while (ex.InnerException != null)
+                {
+                    ex = ex.InnerException;
+                }
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
