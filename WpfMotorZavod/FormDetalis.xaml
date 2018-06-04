@@ -3,10 +3,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfMotorZavod"
         mc:Ignorable="d"
-        Title="Список компонентов" Height="351" Width="480" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+       Title="Список деталей" Height="351" Width="480" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
     <Grid>
-        <DataGrid x:Name="dataGridViewElements" HorizontalAlignment="Left" Height="320" VerticalAlignment="Top" Width="350" Background="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}" IsReadOnly="True"/>
+        <DataGrid x:Name="dataGridViewDetalis" HorizontalAlignment="Left" Height="320" VerticalAlignment="Top" Width="350" Background="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}" IsReadOnly="True"/>
         <Button x:Name="buttonAdd" Content="Добавить" HorizontalAlignment="Left" Margin="374,28,0,0" VerticalAlignment="Top" Width="76" Click="buttonAdd_Click"/>
         <Button x:Name="buttonUpd" Content="Изменить" HorizontalAlignment="Left" Margin="374,67,0,0" VerticalAlignment="Top" Width="76" Click="buttonUpd_Click"/>
         <Button x:Name="buttonDel" Content="Удалить" HorizontalAlignment="Left" Margin="374,115,0,0" VerticalAlignment="Top" Width="76" Click="buttonDel_Click"/>

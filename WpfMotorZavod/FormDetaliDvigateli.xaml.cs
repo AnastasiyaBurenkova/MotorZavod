@@ -11,7 +11,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using AbstractShopService.BindingModels;
 using AbstractShopService.Interfaces;
 using AbstractShopService.ViewModels;
 using Unity;
@@ -19,52 +18,55 @@ using Unity.Attributes;
 namespace WpfMotorZavod
 {
     /// <summary>
-    /// Логика взаимодействия для FormPutOnGarazh.xaml
+    /// Логика взаимодействия для FormDvigateliDetali.xaml
     /// </summary>
-    public partial class FormPutOnGarazh : Window
+    public partial class FormDvigateliDetali : Window
     {
         [Dependency]
         public new IUnityContainer Container { get; set; }
 
-        private readonly IGarazhService serviceB;
+        public DvigateliDetaliViewModel Model { set { model = value; } get { return model; } }
 
-        private readonly IDetaliService serviceZ;
+        private readonly IDetaliService service;
 
-        private readonly IMainService serviceG;
+        private DvigateliDetaliViewModel model;
 
-        public FormPutOnGarazh(IGarazhService serviceB, IDetaliService serviceZ, IMainService serviceG)
+        public FormDvigateliDetali(IDetaliService service)
         {
             InitializeComponent();
-            Loaded += FormPutOnGarazh_Load;
-            this.serviceB = serviceB;
-            this.serviceZ = serviceZ;
-            this.serviceG = serviceG;
+            Loaded += FormDvigateliDetali_Load;
+            this.service = service;
         }
 
-        private void FormPutOnGarazh_Load(object sender, EventArgs e)
+        private void FormDvigateliDetali_Load(object sender, EventArgs e)
         {
+            List<DetaliViewModel> list = service.GetList();
             try
             {
-                List<DetaliViewModel> listZ = serviceZ.GetList();
-                if (listZ != null)
+                if (list != null)
                 {
                     comboBoxDetali.DisplayMemberPath = "DetaliName";
                     comboBoxDetali.SelectedValuePath = "Id";
-                    comboBoxDetali.ItemsSource = listZ;
+                    comboBoxDetali.ItemsSource = list;
                     comboBoxDetali.SelectedItem = null;
-                }
-                List<GarazhViewModel> listB = serviceB.GetList();
-                if (listB != null)
-                {
-                    comboBoxGarazh.DisplayMemberPath = "GarazhName";
-                    comboBoxGarazh.SelectedValuePath = "Id";
-                    comboBoxGarazh.ItemsSource = listB;
-                    comboBoxGarazh.SelectedItem = null;
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            if (model != null)
+            {
+                comboBoxDetali.IsEnabled = false;
+                foreach (DetaliViewModel item in list)
+                {
+                    if (item.DetaliName == model.DetaliName)
+                    {
+                        comboBoxDetali.SelectedItem = item;
+                    }
+                }
+                textBoxCount.Text = model.Count.ToString();
             }
         }
 
@@ -80,21 +82,22 @@ namespace WpfMotorZavod
                 MessageBox.Show("Выберите заготовку", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
-            if (comboBoxGarazh.SelectedItem == null)
-            {
-                MessageBox.Show("Выберите базу", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
             try
             {
-                serviceG.PutDetaliOnGarazh(new GarazhDetaliBindingModel
+                if (model == null)
                 {
-                    DetaliId = Convert.ToInt32(comboBoxDetali.SelectedValue),
-                    GarazhId = Convert.ToInt32(comboBoxGarazh.SelectedValue),
-                    Count = Convert.ToInt32(textBoxCount.Text)
-                });
-                MessageBox.Show("Сохранение прошло успешно", "Информация",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
+                    model = new DvigateliDetaliViewModel
+                    {
+                        DetaliId = Convert.ToInt32(comboBoxDetali.SelectedValue),
+                        DetaliName = comboBoxDetali.Text,
+                        Count = Convert.ToInt32(textBoxCount.Text)
+                    };
+                }
+                else
+                {
+                    model.Count = Convert.ToInt32(textBoxCount.Text);
+                }
+                MessageBox.Show("Сохранение прошло успешно", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
                 DialogResult = true;
                 Close();
             }

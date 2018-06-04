@@ -3,8 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfMotorZavod"
         mc:Ignorable="d"
-        Title="Создание клиента" Height="114.777" Width="308.777" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+       Title="Создание клиента" Height="114.777" Width="308.777" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
     <Grid>
         <Label x:Name="labelFIO" Content="ФИО:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="textBoxFullName" HorizontalAlignment="Left" Height="23" Margin="54,13,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="228"/>

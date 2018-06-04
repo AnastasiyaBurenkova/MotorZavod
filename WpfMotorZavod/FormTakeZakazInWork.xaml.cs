@@ -1,7 +1,4 @@
-﻿using AbstractShopService.BindingModels;
-using AbstractShopService.Interfaces;
-using AbstractShopService.ViewModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,33 +11,36 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using AbstractShopService.BindingModels;
+using AbstractShopService.Interfaces;
+using AbstractShopService.ViewModels;
 using Unity;
 using Unity.Attributes;
 
 namespace WpfMotorZavod
 {
     /// <summary>
-    /// Логика взаимодействия для TakeZakazInWork.xaml
+    /// Логика взаимодействия для FormTakeZakazInWork.xaml
     /// </summary>
     public partial class FormTakeZakazInWork : Window
     {
         [Dependency]
         public new IUnityContainer Container { get; set; }
 
-        public int ID { set { id = value; } }
+        public int Id { set { id = value; } }
 
-        private readonly IRabochiService serviceRabochi;
+        private readonly IRabochiService serviceR;
 
-        private readonly IMainService serviceMain;
+        private readonly IMainService serviceG;
 
         private int? id;
 
-        public FormTakeZakazInWork(IRabochiService serviceI, IMainService serviceM)
+        public FormTakeZakazInWork(IRabochiService serviceR, IMainService serviceG)
         {
             InitializeComponent();
             Loaded += FormTakeZakazInWork_Load;
-            this.serviceRabochi = serviceI;
-            this.serviceMain = serviceM;
+            this.serviceR = serviceR;
+            this.serviceG = serviceG;
         }
 
         private void FormTakeZakazInWork_Load(object sender, EventArgs e)
@@ -49,15 +49,15 @@ namespace WpfMotorZavod
             {
                 if (!id.HasValue)
                 {
-                    MessageBox.Show("Не указан заказ", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show("Не указана заявка", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                     Close();
                 }
-                List<RabochiViewModel> listRabochi = serviceRabochi.GetList();
-                if (listRabochi != null)
+                List<RabochiViewModel> listR = serviceR.GetList();
+                if (listR != null)
                 {
                     comboBoxRabochi.DisplayMemberPath = "RabochiFIO";
                     comboBoxRabochi.SelectedValuePath = "Id";
-                    comboBoxRabochi.ItemsSource = listRabochi;
+                    comboBoxRabochi.ItemsSource = listR;
                     comboBoxRabochi.SelectedItem = null;
 
                 }
@@ -72,12 +72,12 @@ namespace WpfMotorZavod
         {
             if (comboBoxRabochi.SelectedItem == null)
             {
-                MessageBox.Show("Выберите исполнителя", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Выберите рабочего", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
             try
             {
-                serviceMain.TakeZakazInWork(new ZakazBindingModel
+                serviceG.TakeZakazInWork(new ZakazBindingModel
                 {
                     Id = id.Value,
                     RabochiId = ((RabochiViewModel)comboBoxRabochi.SelectedItem).Id,

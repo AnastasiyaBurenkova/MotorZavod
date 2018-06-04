@@ -1,8 +1,5 @@
-﻿using AbstractShopService.Interfaces;
-using AbstractShopService.ViewModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,9 +11,10 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using AbstractShopService.Interfaces;
+using AbstractShopService.ViewModels;
 using Unity;
 using Unity.Attributes;
-
 namespace WpfMotorZavod
 {
     /// <summary>
@@ -71,7 +69,7 @@ namespace WpfMotorZavod
             if (dataGridViewRabochis.SelectedItem != null)
             {
                 var form = Container.Resolve<FormRabochi>();
-                form.ID = ((RabochiViewModel)dataGridViewRabochis.SelectedItem).Id;
+                form.Id = ((RabochiViewModel)dataGridViewRabochis.SelectedItem).Id;
                 if (form.ShowDialog() == true)
                     LoadData();
             }

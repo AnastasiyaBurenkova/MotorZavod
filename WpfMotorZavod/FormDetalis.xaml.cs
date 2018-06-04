@@ -1,8 +1,5 @@
-﻿using AbstractShopService.Interfaces;
-using AbstractShopService.ViewModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,9 +11,10 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using AbstractShopService.Interfaces;
+using AbstractShopService.ViewModels;
 using Unity;
 using Unity.Attributes;
-
 namespace WpfMotorZavod
 {
     /// <summary>
@@ -48,9 +46,9 @@ namespace WpfMotorZavod
                 List<DetaliViewModel> list = service.GetList();
                 if (list != null)
                 {
-                    dataGridViewElements.ItemsSource = list;
-                    dataGridViewElements.Columns[0].Visibility = Visibility.Hidden;
-                    dataGridViewElements.Columns[1].Width = DataGridLength.Auto;
+                    dataGridViewDetalis.ItemsSource = list;
+                    dataGridViewDetalis.Columns[0].Visibility = Visibility.Hidden;
+                    dataGridViewDetalis.Columns[1].Width = DataGridLength.Auto;
                 }
             }
             catch (Exception ex)
@@ -68,10 +66,10 @@ namespace WpfMotorZavod
 
         private void buttonUpd_Click(object sender, EventArgs e)
         {
-            if (dataGridViewElements.SelectedItem != null)
+            if (dataGridViewDetalis.SelectedItem != null)
             {
                 var form = Container.Resolve<FormDetali>();
-                form.ID = ((DetaliViewModel)dataGridViewElements.SelectedItem).Id;
+                form.Id = ((DetaliViewModel)dataGridViewDetalis.SelectedItem).Id;
                 if (form.ShowDialog() == true)
                     LoadData();
             }
@@ -79,12 +77,12 @@ namespace WpfMotorZavod
 
         private void buttonDel_Click(object sender, EventArgs e)
         {
-            if (dataGridViewElements.SelectedItem != null)
+            if (dataGridViewDetalis.SelectedItem != null)
             {
                 if (MessageBox.Show("Удалить запись?", "Внимание",
                     MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                 {
-                    int id = ((DetaliViewModel)dataGridViewElements.SelectedItem).Id;
+                    int id = ((DetaliViewModel)dataGridViewDetalis.SelectedItem).Id;
                     try
                     {
                         service.DelElement(id);

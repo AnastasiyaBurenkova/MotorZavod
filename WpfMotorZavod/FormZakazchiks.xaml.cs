@@ -1,23 +1,20 @@
-﻿using AbstractShopService.Interfaces;
-using AbstractShopService.ViewModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using AbstractShopService.Interfaces;
+using AbstractShopService.ViewModels;
 using Unity;
 using Unity.Attributes;
-
 namespace WpfMotorZavod
 {
     /// <summary>
@@ -49,9 +46,9 @@ namespace WpfMotorZavod
                 List<ZakazchikViewModel> list = service.GetList();
                 if (list != null)
                 {
-                    dataGridViewClients.ItemsSource = list;
-                    dataGridViewClients.Columns[0].Visibility = Visibility.Hidden;
-                    dataGridViewClients.Columns[1].Width = DataGridLength.Auto;
+                    dataGridViewZakazchiks.ItemsSource = list;
+                    dataGridViewZakazchiks.Columns[0].Visibility = Visibility.Hidden;
+                    dataGridViewZakazchiks.Columns[1].Width = DataGridLength.Auto;
                 }
             }
             catch (Exception ex)
@@ -71,10 +68,10 @@ namespace WpfMotorZavod
 
         private void buttonUpd_Click(object sender, EventArgs e)
         {
-            if (dataGridViewClients.SelectedItem != null)
+            if (dataGridViewZakazchiks.SelectedItem != null)
             {
                 var form = Container.Resolve<FormZakazchik>();
-                form.ID = ((ZakazchikViewModel)dataGridViewClients.SelectedItem).Id;
+                form.Id = ((ZakazchikViewModel)dataGridViewZakazchiks.SelectedItem).Id;
                 if (form.ShowDialog() == true)
                 {
                     LoadData();
@@ -84,12 +81,12 @@ namespace WpfMotorZavod
 
         private void buttonDel_Click(object sender, EventArgs e)
         {
-            if (dataGridViewClients.SelectedItem != null)
+            if (dataGridViewZakazchiks.SelectedItem != null)
             {
                 if (MessageBox.Show("Удалить запись?", "Внимание",
                     MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                 {
-                    int id = ((ZakazchikViewModel)dataGridViewClients.SelectedItem).Id;
+                    int id = ((ZakazchikViewModel)dataGridViewZakazchiks.SelectedItem).Id;
                     try
                     {
                         service.DelElement(id);
