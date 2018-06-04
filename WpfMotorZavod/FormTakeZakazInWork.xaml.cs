@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
+
 namespace WpfMotorZavod
 {
     /// <summary>
@@ -40,26 +41,22 @@ namespace WpfMotorZavod
                     MessageBox.Show("Не указана заявка", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                     Close();
                 }
-                var response = APIClient.GetRequest("api/Rabochi/GetList");
-                if (response.Result.IsSuccessStatusCode)
+                List<RabochiViewModel> list = Task.Run(() => APIClient.GetRequestData<List<RabochiViewModel>>("api/Rabochi/GetList")).Result;
+                if (list != null)
                 {
-                    List<RabochiViewModel> list = APIClient.GetElement<List<RabochiViewModel>>(response);
-                    if (list != null)
-                    {
-                        comboBoxRabochi.DisplayMemberPath = "RabochiFIO";
-                        comboBoxRabochi.SelectedValuePath = "Id";
-                        comboBoxRabochi.ItemsSource = list;
-                        comboBoxRabochi.SelectedItem = null;
+                    comboBoxRabochi.DisplayMemberPath = "RabochiFIO";
+                    comboBoxRabochi.SelectedValuePath = "Id";
+                    comboBoxRabochi.ItemsSource = list;
+                    comboBoxRabochi.SelectedItem = null;
+                }
 
-                    }
-                }
-                else
-                {
-                    throw new Exception(APIClient.GetError(response));
-                }
             }
             catch (Exception ex)
             {
+                while (ex.InnerException != null)
+                {
+                    ex = ex.InnerException;
+                }
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -73,27 +70,37 @@ namespace WpfMotorZavod
             }
             try
             {
-                var response = APIClient.PostRequest("api/Main/TakeZakazInWork", new ZakazBindingModel
+                int RabochiId = Convert.ToInt32(comboBoxRabochi.SelectedValue);
+                Task task = Task.Run(() => APIClient.PostRequestData("api/Main/TakeZakazInWork", new ZakazBindingModel
                 {
                     Id = id.Value,
-                    RabochiId = ((RabochiViewModel)comboBoxRabochi.SelectedItem).Id,
-                });
-                if (response.Result.IsSuccessStatusCode)
+                    RabochiId = RabochiId
+                }));
+
+                task.ContinueWith((prevTask) => MessageBox.Show("Заявка передана в работу. Обновите список", "Сообщение", MessageBoxButton.OK, MessageBoxImage.Information),
+                    TaskContinuationOptions.OnlyOnRanToCompletion);
+                task.ContinueWith((prevTask) =>
                 {
-                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButton.OK, MessageBoxImage.Information);
-                    DialogResult = true;
-                    Close();
-                }
-                else
-                {
-                    throw new Exception(APIClient.GetError(response));
-                }
+                    var ex = (Exception)prevTask.Exception;
+                    while (ex.InnerException != null)
+                    {
+                        ex = ex.InnerException;
+                    }
+                    MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                }, TaskContinuationOptions.OnlyOnFaulted);
+
+                Close();
             }
             catch (Exception ex)
             {
+                while (ex.InnerException != null)
+                {
+                    ex = ex.InnerException;
+                }
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
 
         private void buttonCancel_Click(object sender, EventArgs e)
         {

@@ -39,22 +39,18 @@ namespace WpfMotorZavod
             {
                 try
                 {
-                    var response = APIClient.GetRequest("api/Dvigateli/Get/" + id.Value);
-                    if (response.Result.IsSuccessStatusCode)
-                    {
-                        var Dvigateli = APIClient.GetElement<DvigateliViewModel>(response);
-                        textBoxName.Text = Dvigateli.DvigateliName;
-                        textBoxPrice.Text = Dvigateli.Price.ToString();
-                        DetaliDvigatelis = Dvigateli.DvigateliDetalis;
-                        LoadData();
-                    }
-                    else
-                    {
-                        throw new Exception(APIClient.GetError(response));
-                    }
+                    var Dvigateli = Task.Run(() => APIClient.GetRequestData<DvigateliViewModel>("api/Dvigateli/Get/" + id.Value)).Result;
+                    textBoxName.Text = Dvigateli.DvigateliName;
+                    textBoxPrice.Text = Dvigateli.Price.ToString();
+                    DetaliDvigatelis = Dvigateli.DvigateliDetalis;
+                    LoadData();
                 }
                 catch (Exception ex)
                 {
+                    while (ex.InnerException != null)
+                    {
+                        ex = ex.InnerException;
+                    }
                     MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
@@ -153,54 +149,54 @@ namespace WpfMotorZavod
                 MessageBox.Show("Заполните заготовки", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
-            try
+
+            List<DvigateliDetaliBindingModel> DetaliDvigateliBM = new List<DvigateliDetaliBindingModel>();
+            for (int i = 0; i < DetaliDvigatelis.Count; ++i)
             {
-                List<DvigateliDetaliBindingModel> productComponentBM = new List<DvigateliDetaliBindingModel>();
-                for (int i = 0; i < DetaliDvigatelis.Count; ++i)
+                DetaliDvigateliBM.Add(new DvigateliDetaliBindingModel
                 {
-                    productComponentBM.Add(new DvigateliDetaliBindingModel
-                    {
-                        Id = DetaliDvigatelis[i].Id,
-                        DvigateliId = DetaliDvigatelis[i].DvigateliId,
-                        DetaliId = DetaliDvigatelis[i].DetaliId,
-                        Count = DetaliDvigatelis[i].Count
-                    });
-                }
-                Task<HttpResponseMessage> response;
-                if (id.HasValue)
-                {
-                    response = APIClient.PostRequest("api/Dvigateli/UpdElement", new DvigateliBindingModel
-                    {
-                        Id = id.Value,
-                        DvigateliName = textBoxName.Text,
-                        Price = Convert.ToInt32(textBoxPrice.Text),
-                        DvigateliDetalis = productComponentBM
-                    });
-                }
-                else
-                {
-                    response = APIClient.PostRequest("api/Dvigateli/AddElement", new DvigateliBindingModel
-                    {
-                        DvigateliName = textBoxName.Text,
-                        Price = Convert.ToInt32(textBoxPrice.Text),
-                        DvigateliDetalis = productComponentBM
-                    });
-                }
-                if (response.Result.IsSuccessStatusCode)
-                {
-                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButton.OK, MessageBoxImage.Information);
-                    DialogResult = true;
-                    Close();
-                }
-                else
-                {
-                    throw new Exception(APIClient.GetError(response));
-                }
+                    Id = DetaliDvigatelis[i].Id,
+                    DvigateliId = DetaliDvigatelis[i].DvigateliId,
+                    DetaliId = DetaliDvigatelis[i].DetaliId,
+                    Count = DetaliDvigatelis[i].Count
+                });
             }
-            catch (Exception ex)
+            string name = textBoxName.Text;
+            int price = Convert.ToInt32(textBoxPrice.Text);
+            Task task;
+            if (id.HasValue)
             {
+                task = Task.Run(() => APIClient.PostRequestData("api/Dvigateli/UpdElement", new DvigateliBindingModel
+                {
+                    Id = id.Value,
+                    DvigateliName = name,
+                    Price = price,
+                    DvigateliDetalis = DetaliDvigateliBM
+                }));
+            }
+            else
+            {
+                task = Task.Run(() => APIClient.PostRequestData("api/Dvigateli/AddElement", new DvigateliBindingModel
+                {
+                    DvigateliName = name,
+                    Price = price,
+                    DvigateliDetalis = DetaliDvigateliBM
+                }));
+            }
+
+            task.ContinueWith((prevTask) => MessageBox.Show("Сохранение прошло успешно. Обновите список", "Сообщение", MessageBoxButton.OK, MessageBoxImage.Information),
+                TaskContinuationOptions.OnlyOnRanToCompletion);
+            task.ContinueWith((prevTask) =>
+            {
+                var ex = (Exception)prevTask.Exception;
+                while (ex.InnerException != null)
+                {
+                    ex = ex.InnerException;
+                }
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            }, TaskContinuationOptions.OnlyOnFaulted);
+
+            Close();
         }
 
         private void buttonCancel_Click(object sender, EventArgs e)

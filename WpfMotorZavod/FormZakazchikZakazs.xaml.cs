@@ -44,21 +44,15 @@ namespace WpfMotorZavod
                 reportViewer.LocalReport.SetParameters(parameter);
 
 
-                var response = APIClient.PostRequest("api/Report/GetZakazchikZakazs", new ReportBindingModel
-                {
-                    DateFrom = dateTimePickerFrom.SelectedDate,
-                    DateTo = dateTimePickerTo.SelectedDate
-                });
-                if (response.Result.IsSuccessStatusCode)
-                {
-                    var dataSource = APIClient.GetElement<List<ZakazchikZakazsModel>>(response);
-                    ReportDataSource source = new ReportDataSource("DataSetZakazs", dataSource);
-                    reportViewer.LocalReport.DataSources.Add(source);
-                }
-                else
-                {
-                    throw new Exception(APIClient.GetError(response));
-                }
+                var dataSource = Task.Run(() => APIClient.PostRequestData<ReportBindingModel, List<ZakazchikZakazsModel>>("api/Report/GetZakazchikZakazs",
+                     new ReportBindingModel
+                     {
+                         DateFrom = dateTimePickerFrom.SelectedDate,
+                         DateTo = dateTimePickerTo.SelectedDate
+                     })).Result;
+
+                ReportDataSource source = new ReportDataSource("DataSetZakazs", dataSource);
+                reportViewer.LocalReport.DataSources.Add(source);
 
                 reportViewer.RefreshReport();
             }
@@ -81,27 +75,25 @@ namespace WpfMotorZavod
             };
             if (sfd.ShowDialog() == true)
             {
-                try
+                string fileName = sfd.FileName;
+                Task task = Task.Run(() => APIClient.PostRequestData("api/Report/SaveZakazchikZakazs", new ReportBindingModel
                 {
-                    var response = APIClient.PostRequest("api/Report/SaveZakazchikZakazs", new ReportBindingModel
-                    {
-                        FileName = sfd.FileName,
-                        DateFrom = dateTimePickerFrom.SelectedDate,
-                        DateTo = dateTimePickerTo.SelectedDate
-                    });
-                    if (response.Result.IsSuccessStatusCode)
-                    {
-                        MessageBox.Show("Выполнено", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                    else
-                    {
-                        throw new Exception(APIClient.GetError(response));
-                    }
-                }
-                catch (Exception ex)
+                    FileName = sfd.FileName,
+                    DateFrom = dateTimePickerFrom.SelectedDate,
+                    DateTo = dateTimePickerTo.SelectedDate
+                }));
+                task.ContinueWith((prevTask) => MessageBox.Show("Список заявок сохранен", "Успех", MessageBoxButton.OK, MessageBoxImage.Information),
+            TaskContinuationOptions.OnlyOnRanToCompletion);
+
+                task.ContinueWith((prevTask) =>
                 {
+                    var ex = (Exception)prevTask.Exception;
+                    while (ex.InnerException != null)
+                    {
+                        ex = ex.InnerException;
+                    }
                     MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                }, TaskContinuationOptions.OnlyOnFaulted);
             }
         }
     }

@@ -30,37 +30,21 @@ namespace WpfMotorZavod
         {
             try
             {
-                var responseC = APIClient.GetRequest("api/Detali/GetList");
-                if (responseC.Result.IsSuccessStatusCode)
+                List<DetaliViewModel> listC = Task.Run(() => APIClient.GetRequestData<List<DetaliViewModel>>("api/Detali/GetList")).Result;
+                if (listC != null)
                 {
-                    List<DetaliViewModel> list = APIClient.GetElement<List<DetaliViewModel>>(responseC);
-                    if (list != null)
-                    {
-                        comboBoxDetali.DisplayMemberPath = "DetaliName";
-                        comboBoxDetali.SelectedValuePath = "Id";
-                        comboBoxDetali.ItemsSource = list;
-                        comboBoxDetali.SelectedItem = null;
-                    }
+                    comboBoxDetali.DisplayMemberPath = "DetaliName";
+                    comboBoxDetali.SelectedValuePath = "Id";
+                    comboBoxDetali.ItemsSource = listC;
+                    comboBoxDetali.SelectedItem = null;
                 }
-                else
+                List<GarazhViewModel> listS = Task.Run(() => APIClient.GetRequestData<List<GarazhViewModel>>("api/Garazh/GetList")).Result;
+                if (listS != null)
                 {
-                    throw new Exception(APIClient.GetError(responseC));
-                }
-                var responseS = APIClient.GetRequest("api/Garazh/GetList");
-                if (responseS.Result.IsSuccessStatusCode)
-                {
-                    List<GarazhViewModel> list = APIClient.GetElement<List<GarazhViewModel>>(responseS);
-                    if (list != null)
-                    {
-                        comboBoxGarazh.DisplayMemberPath = "GarazhName";
-                        comboBoxGarazh.SelectedValuePath = "Id";
-                        comboBoxGarazh.ItemsSource = list;
-                        comboBoxGarazh.SelectedItem = null;
-                    }
-                }
-                else
-                {
-                    throw new Exception(APIClient.GetError(responseC));
+                    comboBoxGarazh.DisplayMemberPath = "GarazhName";
+                    comboBoxGarazh.SelectedValuePath = "Id";
+                    comboBoxGarazh.ItemsSource = listS;
+                    comboBoxGarazh.SelectedItem = null;
                 }
             }
             catch (Exception ex)
@@ -88,25 +72,36 @@ namespace WpfMotorZavod
             }
             try
             {
-                var response = APIClient.PostRequest("api/Main/PutDetaliOnGarazh", new GarazhDetaliBindingModel
+                int DetaliId = Convert.ToInt32(comboBoxDetali.SelectedValue);
+                int GarazhId = Convert.ToInt32(comboBoxGarazh.SelectedValue);
+                int count = Convert.ToInt32(textBoxCount.Text);
+                Task task = Task.Run(() => APIClient.PostRequestData("api/Main/PutDetaliOnGarazh", new GarazhDetaliBindingModel
                 {
-                    DetaliId = Convert.ToInt32(comboBoxDetali.SelectedValue),
-                    GarazhId = Convert.ToInt32(comboBoxGarazh.SelectedValue),
-                    Count = Convert.ToInt32(textBoxCount.Text)
-                });
-                if (response.Result.IsSuccessStatusCode)
+                    DetaliId = DetaliId,
+                    GarazhId = GarazhId,
+                    Count = count
+                }));
+
+                task.ContinueWith((prevTask) => MessageBox.Show("База пополнен", "Сообщение", MessageBoxButton.OK, MessageBoxImage.Information),
+                    TaskContinuationOptions.OnlyOnRanToCompletion);
+                task.ContinueWith((prevTask) =>
                 {
-                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButton.OK, MessageBoxImage.Information);
-                    DialogResult = true;
-                    Close();
-                }
-                else
-                {
-                    throw new Exception(APIClient.GetError(response));
-                }
+                    var ex = (Exception)prevTask.Exception;
+                    while (ex.InnerException != null)
+                    {
+                        ex = ex.InnerException;
+                    }
+                    MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                }, TaskContinuationOptions.OnlyOnFaulted);
+
+                Close();
             }
             catch (Exception ex)
             {
+                while (ex.InnerException != null)
+                {
+                    ex = ex.InnerException;
+                }
                 MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
