@@ -1,4 +1,6 @@
-﻿using System;
+﻿using AbstractShopService.BindingModels;
+using AbstractShopService.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,10 +13,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using AbstractShopService.Interfaces;
-using AbstractShopService.ViewModels;
-using Unity;
-using Unity.Attributes;
 namespace WpfMotorZavod
 {
     /// <summary>
@@ -22,16 +20,11 @@ namespace WpfMotorZavod
     /// </summary>
     public partial class FormDvigatelis : Window
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
 
-        private readonly IDvigateliService service;
-
-        public FormDvigatelis(IDvigateliService service)
+        public FormDvigatelis()
         {
             InitializeComponent();
             Loaded += FormDvigatelis_Load;
-            this.service = service;
         }
 
         private void FormDvigatelis_Load(object sender, EventArgs e)
@@ -43,13 +36,21 @@ namespace WpfMotorZavod
         {
             try
             {
-                List<DvigateliViewModel> list = service.GetList();
-                if (list != null)
+                var response = APIClient.GetRequest("api/Dvigateli/GetList");
+                if (response.Result.IsSuccessStatusCode)
                 {
-                    dataGridViewDvigatelis.ItemsSource = list;
-                    dataGridViewDvigatelis.Columns[0].Visibility = Visibility.Hidden;
-                    dataGridViewDvigatelis.Columns[1].Width = DataGridLength.Auto;
-                    dataGridViewDvigatelis.Columns[3].Visibility = Visibility.Hidden;
+                    List<DvigateliViewModel> list = APIClient.GetElement<List<DvigateliViewModel>>(response);
+                    if (list != null)
+                    {
+                        dataGridViewDvigatelis.ItemsSource = list;
+                        dataGridViewDvigatelis.Columns[0].Visibility = Visibility.Hidden;
+                        dataGridViewDvigatelis.Columns[1].Width = DataGridLength.Auto;
+                        dataGridViewDvigatelis.Columns[3].Visibility = Visibility.Hidden;
+                    }
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
                 }
             }
             catch (Exception ex)
@@ -60,7 +61,7 @@ namespace WpfMotorZavod
 
         private void buttonAdd_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormDvigateli>();
+            var form = new FormDvigateli();
             if (form.ShowDialog() == true)
                 LoadData();
         }
@@ -69,7 +70,7 @@ namespace WpfMotorZavod
         {
             if (dataGridViewDvigatelis.SelectedItem != null)
             {
-                var form = Container.Resolve<FormDvigateli>();
+                var form = new FormDvigateli();
                 form.Id = ((DvigateliViewModel)dataGridViewDvigatelis.SelectedItem).Id;
                 if (form.ShowDialog() == true)
                     LoadData();
@@ -87,7 +88,11 @@ namespace WpfMotorZavod
                     int id = ((DvigateliViewModel)dataGridViewDvigatelis.SelectedItem).Id;
                     try
                     {
-                        service.DelElement(id);
+                        var response = APIClient.PostRequest("api/Dvigateli/DelElement", new ZakazchikBindingModel { Id = id });
+                        if (!response.Result.IsSuccessStatusCode)
+                        {
+                            throw new Exception(APIClient.GetError(response));
+                        }
                     }
                     catch (Exception ex)
                     {

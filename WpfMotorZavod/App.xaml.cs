@@ -6,13 +6,9 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using AbstractShopService;
-using AbstractShopService.ImplementationsBD;
-using AbstractShopService.Interfaces;
-using Unity;
-using Unity.Lifetime;
+using WpfMotorZavod;
 
-namespace WpfMotorZavod
+namespace MebelFactoryViewWpf
 {
     /// <summary>
     /// Логика взаимодействия для App.xaml
@@ -23,31 +19,18 @@ namespace WpfMotorZavod
             {
                 InitializeComponent();
             }*/
-
         [STAThread]
         public static void Main()
         {
-            var container = BuildUnityContainer();
 
+            APIClient.Connect();
             var application = new App();
             //application.InitializeComponent();
-            application.Run(container.Resolve<FormMain>());
+            application.Run(new FormMain());
             //App app = new App();
             //app.Run(container.Resolve<FormMain>());
         }
 
-        public static IUnityContainer BuildUnityContainer()
-        {
-            var currentContainer = new UnityContainer();
-            currentContainer.RegisterType<DbContext, AbstractDbContext>(new HierarchicalLifetimeManager());
-            currentContainer.RegisterType<IZakazchikService, ZakazchikServiceBD>(new HierarchicalLifetimeManager());
-            currentContainer.RegisterType<IDetaliService, DetaliServiceBD>(new HierarchicalLifetimeManager());
-            currentContainer.RegisterType<IRabochiService, RabochiServiceBD>(new HierarchicalLifetimeManager());
-            currentContainer.RegisterType<IDvigateliService, DvigateliServiceBD>(new HierarchicalLifetimeManager());
-            currentContainer.RegisterType<IGarazhService, GarazhServiceBD>(new HierarchicalLifetimeManager());
-            currentContainer.RegisterType<IMainService, MainServiceBD>(new HierarchicalLifetimeManager());
-            currentContainer.RegisterType<IReportService, ReportServiceBD>(new HierarchicalLifetimeManager());
-            return currentContainer;
-        }
+
     }
 }

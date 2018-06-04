@@ -1,4 +1,6 @@
-﻿using System;
+﻿using AbstractShopService.BindingModels;
+using AbstractShopService.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,10 +13,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using AbstractShopService.Interfaces;
-using AbstractShopService.ViewModels;
-using Unity;
-using Unity.Attributes;
 namespace WpfMotorZavod
 {
     /// <summary>
@@ -22,16 +20,11 @@ namespace WpfMotorZavod
     /// </summary>
     public partial class FormZakazchiks : Window
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
 
-        private readonly IZakazchikService service;
-
-        public FormZakazchiks(IZakazchikService service)
+        public FormZakazchiks()
         {
             InitializeComponent();
             Loaded += FormZakazchiks_Load;
-            this.service = service;
         }
 
         private void FormZakazchiks_Load(object sender, EventArgs e)
@@ -43,12 +36,20 @@ namespace WpfMotorZavod
         {
             try
             {
-                List<ZakazchikViewModel> list = service.GetList();
-                if (list != null)
+                var response = APIClient.GetRequest("api/Zakazchik/GetList");
+                if (response.Result.IsSuccessStatusCode)
                 {
-                    dataGridViewZakazchiks.ItemsSource = list;
-                    dataGridViewZakazchiks.Columns[0].Visibility = Visibility.Hidden;
-                    dataGridViewZakazchiks.Columns[1].Width = DataGridLength.Auto;
+                    List<ZakazchikViewModel> list = APIClient.GetElement<List<ZakazchikViewModel>>(response);
+                    if (list != null)
+                    {
+                        dataGridViewZakazchiks.ItemsSource = list;
+                        dataGridViewZakazchiks.Columns[0].Visibility = Visibility.Hidden;
+                        dataGridViewZakazchiks.Columns[1].Width = DataGridLength.Auto;
+                    }
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
                 }
             }
             catch (Exception ex)
@@ -59,7 +60,7 @@ namespace WpfMotorZavod
 
         private void buttonAdd_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormZakazchik>();
+            var form = new FormZakazchik();
             if (form.ShowDialog() == true)
             {
                 LoadData();
@@ -70,7 +71,7 @@ namespace WpfMotorZavod
         {
             if (dataGridViewZakazchiks.SelectedItem != null)
             {
-                var form = Container.Resolve<FormZakazchik>();
+                var form = new FormZakazchik();
                 form.Id = ((ZakazchikViewModel)dataGridViewZakazchiks.SelectedItem).Id;
                 if (form.ShowDialog() == true)
                 {
@@ -89,7 +90,11 @@ namespace WpfMotorZavod
                     int id = ((ZakazchikViewModel)dataGridViewZakazchiks.SelectedItem).Id;
                     try
                     {
-                        service.DelElement(id);
+                        var response = APIClient.PostRequest("api/Zakazchik/DelElement", new ZakazchikBindingModel { Id = id });
+                        if (!response.Result.IsSuccessStatusCode)
+                        {
+                            throw new Exception(APIClient.GetError(response));
+                        }
                     }
                     catch (Exception ex)
                     {

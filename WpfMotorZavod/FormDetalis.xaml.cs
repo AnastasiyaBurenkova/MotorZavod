@@ -1,4 +1,6 @@
-﻿using System;
+﻿using AbstractShopService.BindingModels;
+using AbstractShopService.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,10 +13,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using AbstractShopService.Interfaces;
-using AbstractShopService.ViewModels;
-using Unity;
-using Unity.Attributes;
 namespace WpfMotorZavod
 {
     /// <summary>
@@ -22,16 +20,11 @@ namespace WpfMotorZavod
     /// </summary>
     public partial class FormDetalis : Window
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
 
-        private readonly IDetaliService service;
-
-        public FormDetalis(IDetaliService service)
+        public FormDetalis()
         {
             InitializeComponent();
             Loaded += FormDetalis_Load;
-            this.service = service;
         }
 
         private void FormDetalis_Load(object sender, EventArgs e)
@@ -43,12 +36,20 @@ namespace WpfMotorZavod
         {
             try
             {
-                List<DetaliViewModel> list = service.GetList();
-                if (list != null)
+                var response = APIClient.GetRequest("api/Detali/GetList");
+                if (response.Result.IsSuccessStatusCode)
                 {
-                    dataGridViewDetalis.ItemsSource = list;
-                    dataGridViewDetalis.Columns[0].Visibility = Visibility.Hidden;
-                    dataGridViewDetalis.Columns[1].Width = DataGridLength.Auto;
+                    List<DetaliViewModel> list = APIClient.GetElement<List<DetaliViewModel>>(response);
+                    if (list != null)
+                    {
+                        dataGridViewDetalis.ItemsSource = list;
+                        dataGridViewDetalis.Columns[0].Visibility = Visibility.Hidden;
+                        dataGridViewDetalis.Columns[1].Width = DataGridLength.Auto;
+                    }
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
                 }
             }
             catch (Exception ex)
@@ -59,7 +60,7 @@ namespace WpfMotorZavod
 
         private void buttonAdd_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormDetali>();
+            var form = new FormDetali();
             if (form.ShowDialog() == true)
                 LoadData();
         }
@@ -68,7 +69,7 @@ namespace WpfMotorZavod
         {
             if (dataGridViewDetalis.SelectedItem != null)
             {
-                var form = Container.Resolve<FormDetali>();
+                var form = new FormDetali();
                 form.Id = ((DetaliViewModel)dataGridViewDetalis.SelectedItem).Id;
                 if (form.ShowDialog() == true)
                     LoadData();
@@ -85,7 +86,11 @@ namespace WpfMotorZavod
                     int id = ((DetaliViewModel)dataGridViewDetalis.SelectedItem).Id;
                     try
                     {
-                        service.DelElement(id);
+                        var response = APIClient.PostRequest("api/Detali/DelElement", new ZakazchikBindingModel { Id = id });
+                        if (!response.Result.IsSuccessStatusCode)
+                        {
+                            throw new Exception(APIClient.GetError(response));
+                        }
                     }
                     catch (Exception ex)
                     {

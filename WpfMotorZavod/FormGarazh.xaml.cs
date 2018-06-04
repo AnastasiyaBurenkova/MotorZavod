@@ -1,6 +1,9 @@
-﻿using System;
+﻿using AbstractShopService.BindingModels;
+using AbstractShopService.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -11,11 +14,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using AbstractShopService.BindingModels;
-using AbstractShopService.Interfaces;
-using AbstractShopService.ViewModels;
-using Unity;
-using Unity.Attributes;
+
 namespace WpfMotorZavod
 {
     /// <summary>
@@ -23,20 +22,16 @@ namespace WpfMotorZavod
     /// </summary>
     public partial class FormGarazh : Window
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
 
         public int Id { set { id = value; } }
 
-        private readonly IGarazhService service;
-
         private int? id;
 
-        public FormGarazh(IGarazhService service)
+        public FormGarazh()
         {
             InitializeComponent();
             Loaded += FormGarazh_Load;
-            this.service = service;
+
         }
 
         private void FormGarazh_Load(object sender, EventArgs e)
@@ -45,11 +40,12 @@ namespace WpfMotorZavod
             {
                 try
                 {
-                    GarazhViewModel view = service.GetElement(id.Value);
-                    if (view != null)
+                    var response = APIClient.GetRequest("api/Garazh/Get/" + id.Value);
+                    if (response.Result.IsSuccessStatusCode)
                     {
-                        textBoxName.Text = view.GarazhName;
-                        dataGridViewGarazh.ItemsSource = view.GarazhDetalis;
+                        var Garazh = APIClient.GetElement<GarazhViewModel>(response);
+                        textBoxName.Text = Garazh.GarazhName;
+                        dataGridViewGarazh.ItemsSource = Garazh.GarazhDetalis;
                         dataGridViewGarazh.Columns[0].Visibility = Visibility.Hidden;
                         dataGridViewGarazh.Columns[1].Visibility = Visibility.Hidden;
                         dataGridViewGarazh.Columns[2].Visibility = Visibility.Hidden;
@@ -72,9 +68,10 @@ namespace WpfMotorZavod
             }
             try
             {
+                Task<HttpResponseMessage> response;
                 if (id.HasValue)
                 {
-                    service.UpdElement(new GarazhBindingModel
+                    response = APIClient.PostRequest("api/Garazh/UpdElement", new GarazhBindingModel
                     {
                         Id = id.Value,
                         GarazhName = textBoxName.Text
@@ -82,14 +79,21 @@ namespace WpfMotorZavod
                 }
                 else
                 {
-                    service.AddElement(new GarazhBindingModel
+                    response = APIClient.PostRequest("api/Garazh/AddElement", new GarazhBindingModel
                     {
                         GarazhName = textBoxName.Text
                     });
                 }
-                MessageBox.Show("Сохранение прошло успешно", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
-                DialogResult = true;
-                Close();
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButton.OK, MessageBoxImage.Information);
+                    DialogResult = true;
+                    Close();
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
+                }
             }
             catch (Exception ex)
             {

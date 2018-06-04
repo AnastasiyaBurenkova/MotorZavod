@@ -1,4 +1,6 @@
-﻿using System;
+﻿using AbstractShopService.BindingModels;
+using AbstractShopService.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,11 +13,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using AbstractShopService.BindingModels;
-using AbstractShopService.Interfaces;
-using AbstractShopService.ViewModels;
-using Unity;
-using Unity.Attributes;
 
 namespace WpfMotorZavod
 {
@@ -24,23 +21,14 @@ namespace WpfMotorZavod
     /// </summary>
     public partial class FormTakeZakazInWork : Window
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
         public int Id { set { id = value; } }
-
-        private readonly IRabochiService serviceR;
-
-        private readonly IMainService serviceG;
 
         private int? id;
 
-        public FormTakeZakazInWork(IRabochiService serviceR, IMainService serviceG)
+        public FormTakeZakazInWork()
         {
             InitializeComponent();
             Loaded += FormTakeZakazInWork_Load;
-            this.serviceR = serviceR;
-            this.serviceG = serviceG;
         }
 
         private void FormTakeZakazInWork_Load(object sender, EventArgs e)
@@ -52,14 +40,22 @@ namespace WpfMotorZavod
                     MessageBox.Show("Не указана заявка", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                     Close();
                 }
-                List<RabochiViewModel> listR = serviceR.GetList();
-                if (listR != null)
+                var response = APIClient.GetRequest("api/Rabochi/GetList");
+                if (response.Result.IsSuccessStatusCode)
                 {
-                    comboBoxRabochi.DisplayMemberPath = "RabochiFIO";
-                    comboBoxRabochi.SelectedValuePath = "Id";
-                    comboBoxRabochi.ItemsSource = listR;
-                    comboBoxRabochi.SelectedItem = null;
+                    List<RabochiViewModel> list = APIClient.GetElement<List<RabochiViewModel>>(response);
+                    if (list != null)
+                    {
+                        comboBoxRabochi.DisplayMemberPath = "RabochiFIO";
+                        comboBoxRabochi.SelectedValuePath = "Id";
+                        comboBoxRabochi.ItemsSource = list;
+                        comboBoxRabochi.SelectedItem = null;
 
+                    }
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
                 }
             }
             catch (Exception ex)
@@ -77,14 +73,21 @@ namespace WpfMotorZavod
             }
             try
             {
-                serviceG.TakeZakazInWork(new ZakazBindingModel
+                var response = APIClient.PostRequest("api/Main/TakeZakazInWork", new ZakazBindingModel
                 {
                     Id = id.Value,
                     RabochiId = ((RabochiViewModel)comboBoxRabochi.SelectedItem).Id,
                 });
-                MessageBox.Show("Сохранение прошло успешно", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
-                DialogResult = true;
-                Close();
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButton.OK, MessageBoxImage.Information);
+                    DialogResult = true;
+                    Close();
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
+                }
             }
             catch (Exception ex)
             {
