@@ -12,11 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using AbstractShopService.BindingModels;
-using AbstractShopService.Interfaces;
 using AbstractShopService.ViewModels;
 using Microsoft.Win32;
-using Unity;
-using Unity.Attributes;
 namespace WpfMotorZavod
 {
     /// <summary>
@@ -24,33 +21,33 @@ namespace WpfMotorZavod
     /// </summary>
     public partial class FormMain : Window
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
 
-        private readonly IMainService service;
-
-        private readonly IReportService reportService;
-
-        public FormMain(IMainService service, IReportService reportService)
+        public FormMain()
         {
             InitializeComponent();
-            this.service = service;
-            this.reportService = reportService;
         }
 
         private void LoadData()
         {
             try
             {
-                List<ZakazViewModel> list = service.GetList();
-                if (list != null)
+                var response = APIClient.GetRequest("api/Main/GetList");
+                if (response.Result.IsSuccessStatusCode)
                 {
-                    dataGridViewMain.ItemsSource = list;
-                    dataGridViewMain.Columns[0].Visibility = Visibility.Hidden;
-                    dataGridViewMain.Columns[1].Visibility = Visibility.Hidden;
-                    dataGridViewMain.Columns[3].Visibility = Visibility.Hidden;
-                    dataGridViewMain.Columns[5].Visibility = Visibility.Hidden;
-                    dataGridViewMain.Columns[1].Width = DataGridLength.Auto;
+                    List<ZakazViewModel> list = APIClient.GetElement<List<ZakazViewModel>>(response);
+                    if (list != null)
+                    {
+                        dataGridViewMain.ItemsSource = list;
+                        dataGridViewMain.Columns[0].Visibility = Visibility.Hidden;
+                        dataGridViewMain.Columns[1].Visibility = Visibility.Hidden;
+                        dataGridViewMain.Columns[3].Visibility = Visibility.Hidden;
+                        dataGridViewMain.Columns[5].Visibility = Visibility.Hidden;
+                        dataGridViewMain.Columns[1].Width = DataGridLength.Auto;
+                    }
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
                 }
             }
             catch (Exception ex)
@@ -61,43 +58,43 @@ namespace WpfMotorZavod
 
         private void получателиToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormZakazchiks>();
+            var form = new FormZakazchiks();
             form.ShowDialog();
         }
 
         private void заготовкиToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormDetalis>();
+            var form = new FormDetalis();
             form.ShowDialog();
         }
 
         private void мебельToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormDvigatelis>();
+            var form = new FormDvigatelis();
             form.ShowDialog();
         }
 
         private void базыToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormGarazhs>();
+            var form = new FormGarazhs();
             form.ShowDialog();
         }
 
         private void рабочиеToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormRabochis>();
+            var form = new FormRabochis();
             form.ShowDialog();
         }
 
         private void пополнитьБазуToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormPutOnGarazh>();
+            var form = new FormPutOnGarazh();
             form.ShowDialog();
         }
 
         private void buttonCreateZakaz_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormCreateZakaz>();
+            var form = new FormCreateZakaz();
             form.ShowDialog();
             LoadData();
         }
@@ -106,7 +103,7 @@ namespace WpfMotorZavod
         {
             if (dataGridViewMain.SelectedItem != null)
             {
-                var form = Container.Resolve<FormTakeZakazInWork>();
+                var form = new FormTakeZakazInWork();
                 form.Id = ((ZakazViewModel)dataGridViewMain.SelectedItem).Id;
                 form.ShowDialog();
                 LoadData();
@@ -120,8 +117,18 @@ namespace WpfMotorZavod
                 int id = ((ZakazViewModel)dataGridViewMain.SelectedItem).Id;
                 try
                 {
-                    service.FinishZakaz(id);
-                    LoadData();
+                    var response = APIClient.PostRequest("api/Main/FinishZakaz", new ZakazBindingModel
+                    {
+                        Id = id
+                    });
+                    if (response.Result.IsSuccessStatusCode)
+                    {
+                        LoadData();
+                    }
+                    else
+                    {
+                        throw new Exception(APIClient.GetError(response));
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -137,8 +144,18 @@ namespace WpfMotorZavod
                 int id = ((ZakazViewModel)dataGridViewMain.SelectedItem).Id;
                 try
                 {
-                    service.PayZakaz(id);
-                    LoadData();
+                    var response = APIClient.PostRequest("api/Main/PayZakaz", new ZakazBindingModel
+                    {
+                        Id = id
+                    });
+                    if (response.Result.IsSuccessStatusCode)
+                    {
+                        LoadData();
+                    }
+                    else
+                    {
+                        throw new Exception(APIClient.GetError(response));
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -165,11 +182,18 @@ namespace WpfMotorZavod
                 try
                 {
 
-                    reportService.SaveDvigateliPrice(new ReportBindingModel
+                    var response = APIClient.PostRequest("api/Report/SaveDvigateliPrice", new ReportBindingModel
                     {
                         FileName = sfd.FileName
                     });
-                    System.Windows.MessageBox.Show("Выполнено", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                    if (response.Result.IsSuccessStatusCode)
+                    {
+                        MessageBox.Show("Выполнено", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        throw new Exception(APIClient.GetError(response));
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -188,11 +212,18 @@ namespace WpfMotorZavod
             {
                 try
                 {
-                    reportService.SaveGarazhsLoad(new ReportBindingModel
+                    var response = APIClient.PostRequest("api/Report/SaveGarazhsLoad", new ReportBindingModel
                     {
                         FileName = sfd.FileName
                     });
-                    MessageBox.Show("Выполнено", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                    if (response.Result.IsSuccessStatusCode)
+                    {
+                        MessageBox.Show("Выполнено", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        throw new Exception(APIClient.GetError(response));
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -203,7 +234,7 @@ namespace WpfMotorZavod
 
         private void заказыПолучателейToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormZakazchikZakazs>();
+            var form = new FormZakazchikZakazs();
             form.ShowDialog();
         }
     }

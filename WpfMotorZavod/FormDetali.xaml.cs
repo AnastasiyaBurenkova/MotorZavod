@@ -1,6 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -11,11 +18,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using AbstractShopService.BindingModels;
-using AbstractShopService.Interfaces;
 using AbstractShopService.ViewModels;
-using Unity;
-using Unity.Attributes;
+using AbstractShopService.BindingModels;
 
 namespace WpfMotorZavod
 {
@@ -24,20 +28,15 @@ namespace WpfMotorZavod
     /// </summary>
     public partial class FormDetali : Window
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
 
         public int Id { set { id = value; } }
 
-        private readonly IDetaliService service;
-
         private int? id;
 
-        public FormDetali(IDetaliService service)
+        public FormDetali()
         {
             InitializeComponent();
             Loaded += FormDetali_Load;
-            this.service = service;
         }
 
         private void FormDetali_Load(object sender, EventArgs e)
@@ -46,10 +45,15 @@ namespace WpfMotorZavod
             {
                 try
                 {
-                    DetaliViewModel view = service.GetElement(id.Value);
-                    if (view != null)
+                    var response = APIClient.GetRequest("api/Detali/Get/" + id.Value);
+                    if (response.Result.IsSuccessStatusCode)
                     {
-                        textBoxName.Text = view.DetaliName;
+                        var Detali = APIClient.GetElement<DetaliViewModel>(response);
+                        textBoxName.Text = Detali.DetaliName;
+                    }
+                    else
+                    {
+                        throw new Exception(APIClient.GetError(response));
                     }
                 }
                 catch (Exception ex)
@@ -68,9 +72,10 @@ namespace WpfMotorZavod
             }
             try
             {
+                Task<HttpResponseMessage> response;
                 if (id.HasValue)
                 {
-                    service.UpdElement(new DetaliBindingModel
+                    response = APIClient.PostRequest("api/Detali/UpdElement", new DetaliBindingModel
                     {
                         Id = id.Value,
                         DetaliName = textBoxName.Text
@@ -78,14 +83,21 @@ namespace WpfMotorZavod
                 }
                 else
                 {
-                    service.AddElement(new DetaliBindingModel
+                    response = APIClient.PostRequest("api/Detali/AddElement", new DetaliBindingModel
                     {
                         DetaliName = textBoxName.Text
                     });
                 }
-                MessageBox.Show("Сохранение прошло успешно", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
-                DialogResult = true;
-                Close();
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButton.OK, MessageBoxImage.Information);
+                    DialogResult = true;
+                    Close();
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
+                }
             }
             catch (Exception ex)
             {

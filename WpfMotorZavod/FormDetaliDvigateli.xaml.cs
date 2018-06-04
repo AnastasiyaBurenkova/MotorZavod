@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AbstractShopService.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,10 +12,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using AbstractShopService.Interfaces;
-using AbstractShopService.ViewModels;
-using Unity;
-using Unity.Attributes;
 namespace WpfMotorZavod
 {
     /// <summary>
@@ -22,33 +19,31 @@ namespace WpfMotorZavod
     /// </summary>
     public partial class FormDvigateliDetali : Window
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
         public DvigateliDetaliViewModel Model { set { model = value; } get { return model; } }
-
-        private readonly IDetaliService service;
 
         private DvigateliDetaliViewModel model;
 
-        public FormDvigateliDetali(IDetaliService service)
+        public FormDvigateliDetali()
         {
             InitializeComponent();
             Loaded += FormDvigateliDetali_Load;
-            this.service = service;
         }
 
         private void FormDvigateliDetali_Load(object sender, EventArgs e)
         {
-            List<DetaliViewModel> list = service.GetList();
             try
             {
-                if (list != null)
+                var response = APIClient.GetRequest("api/Detali/GetList");
+                if (response.Result.IsSuccessStatusCode)
                 {
                     comboBoxDetali.DisplayMemberPath = "DetaliName";
                     comboBoxDetali.SelectedValuePath = "Id";
-                    comboBoxDetali.ItemsSource = list;
+                    comboBoxDetali.ItemsSource = APIClient.GetElement<List<DetaliViewModel>>(response);
                     comboBoxDetali.SelectedItem = null;
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
                 }
             }
             catch (Exception ex)
@@ -59,13 +54,7 @@ namespace WpfMotorZavod
             if (model != null)
             {
                 comboBoxDetali.IsEnabled = false;
-                foreach (DetaliViewModel item in list)
-                {
-                    if (item.DetaliName == model.DetaliName)
-                    {
-                        comboBoxDetali.SelectedItem = item;
-                    }
-                }
+                comboBoxDetali.SelectedValue = model.DetaliId;
                 textBoxCount.Text = model.Count.ToString();
             }
         }

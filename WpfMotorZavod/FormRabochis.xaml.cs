@@ -1,4 +1,6 @@
-﻿using System;
+﻿using AbstractShopService.BindingModels;
+using AbstractShopService.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,10 +13,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using AbstractShopService.Interfaces;
-using AbstractShopService.ViewModels;
-using Unity;
-using Unity.Attributes;
 namespace WpfMotorZavod
 {
     /// <summary>
@@ -22,16 +20,11 @@ namespace WpfMotorZavod
     /// </summary>
     public partial class FormRabochis : Window
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
 
-        private readonly IRabochiService service;
-
-        public FormRabochis(IRabochiService service)
+        public FormRabochis()
         {
             InitializeComponent();
             Loaded += FormRabochis_Load;
-            this.service = service;
         }
 
         private void FormRabochis_Load(object sender, EventArgs e)
@@ -43,12 +36,20 @@ namespace WpfMotorZavod
         {
             try
             {
-                List<RabochiViewModel> list = service.GetList();
-                if (list != null)
+                var response = APIClient.GetRequest("api/Rabochi/GetList");
+                if (response.Result.IsSuccessStatusCode)
                 {
-                    dataGridViewRabochis.ItemsSource = list;
-                    dataGridViewRabochis.Columns[0].Visibility = Visibility.Hidden;
-                    dataGridViewRabochis.Columns[1].Width = DataGridLength.Auto;
+                    List<RabochiViewModel> list = APIClient.GetElement<List<RabochiViewModel>>(response);
+                    if (list != null)
+                    {
+                        dataGridViewRabochis.ItemsSource = list;
+                        dataGridViewRabochis.Columns[0].Visibility = Visibility.Hidden;
+                        dataGridViewRabochis.Columns[1].Width = DataGridLength.Auto;
+                    }
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
                 }
             }
             catch (Exception ex)
@@ -59,7 +60,7 @@ namespace WpfMotorZavod
 
         private void buttonAdd_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormRabochi>();
+            var form = new FormRabochi();
             if (form.ShowDialog() == true)
                 LoadData();
         }
@@ -68,7 +69,7 @@ namespace WpfMotorZavod
         {
             if (dataGridViewRabochis.SelectedItem != null)
             {
-                var form = Container.Resolve<FormRabochi>();
+                var form = new FormRabochi();
                 form.Id = ((RabochiViewModel)dataGridViewRabochis.SelectedItem).Id;
                 if (form.ShowDialog() == true)
                     LoadData();
@@ -85,7 +86,11 @@ namespace WpfMotorZavod
                     int id = ((RabochiViewModel)dataGridViewRabochis.SelectedItem).Id;
                     try
                     {
-                        service.DelElement(id);
+                        var response = APIClient.PostRequest("api/Rabochi/DelElement", new ZakazchikBindingModel { Id = id });
+                        if (!response.Result.IsSuccessStatusCode)
+                        {
+                            throw new Exception(APIClient.GetError(response));
+                        }
                     }
                     catch (Exception ex)
                     {

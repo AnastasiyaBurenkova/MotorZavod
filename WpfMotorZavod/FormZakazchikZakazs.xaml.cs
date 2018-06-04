@@ -1,8 +1,12 @@
 ﻿using AbstractShopService.BindingModels;
-using AbstractShopService.Interfaces;
+using AbstractShopService.ViewModels;
 using Microsoft.Reporting.WinForms;
 using Microsoft.Win32;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -11,8 +15,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using Unity;
-using Unity.Attributes;
 namespace WpfMotorZavod
 {
     /// <summary>
@@ -20,15 +22,10 @@ namespace WpfMotorZavod
     /// </summary>
     public partial class FormZakazchikZakazs : Window
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
 
-        private readonly IReportService service;
-
-        public FormZakazchikZakazs(IReportService service)
+        public FormZakazchikZakazs()
         {
             InitializeComponent();
-            this.service = service;
         }
 
         private void buttonMake_Click(object sender, EventArgs e)
@@ -40,23 +37,28 @@ namespace WpfMotorZavod
             }
             try
             {
-                reportViewer.LocalReport.ReportEmbeddedResource = "MebelFactoryViewWpf.ReportZakazchikZakazs.rdlc";
+                reportViewer.LocalReport.ReportEmbeddedResource = "WpfMotorZavod.ReportZakazchikZakazs.rdlc";
                 ReportParameter parameter = new ReportParameter("ReportParameterPeriod",
                                             "c " + Convert.ToDateTime(dateTimePickerFrom.SelectedDate).ToString("dd-MM") +
                                             " по " + Convert.ToDateTime(dateTimePickerTo.SelectedDate).ToString("dd-MM"));
                 reportViewer.LocalReport.SetParameters(parameter);
 
 
-                var dataSource = service.GetZakazchikZakazs(new ReportBindingModel
+                var response = APIClient.PostRequest("api/Report/GetZakazchikZakazs", new ReportBindingModel
                 {
                     DateFrom = dateTimePickerFrom.SelectedDate,
                     DateTo = dateTimePickerTo.SelectedDate
                 });
-                ReportDataSource source = new ReportDataSource("DataSetZakazs", dataSource);
-                reportViewer.LocalReport.DataSources.Add(source);
-
-
-
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    var dataSource = APIClient.GetElement<List<ZakazchikZakazsModel>>(response);
+                    ReportDataSource source = new ReportDataSource("DataSetZakazs", dataSource);
+                    reportViewer.LocalReport.DataSources.Add(source);
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
+                }
 
                 reportViewer.RefreshReport();
             }
@@ -81,13 +83,20 @@ namespace WpfMotorZavod
             {
                 try
                 {
-                    service.SaveZakazchikZakazs(new ReportBindingModel
+                    var response = APIClient.PostRequest("api/Report/SaveZakazchikZakazs", new ReportBindingModel
                     {
                         FileName = sfd.FileName,
                         DateFrom = dateTimePickerFrom.SelectedDate,
                         DateTo = dateTimePickerTo.SelectedDate
                     });
-                    MessageBox.Show("Выполнено", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                    if (response.Result.IsSuccessStatusCode)
+                    {
+                        MessageBox.Show("Выполнено", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        throw new Exception(APIClient.GetError(response));
+                    }
                 }
                 catch (Exception ex)
                 {

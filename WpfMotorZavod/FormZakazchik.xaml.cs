@@ -1,6 +1,9 @@
-﻿using System;
+﻿using AbstractShopService.BindingModels;
+using AbstractShopService.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -11,11 +14,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using AbstractShopService.BindingModels;
-using AbstractShopService.Interfaces;
-using AbstractShopService.ViewModels;
-using Unity;
-using Unity.Attributes;
 namespace WpfMotorZavod
 {
     /// <summary>
@@ -23,20 +21,15 @@ namespace WpfMotorZavod
     /// </summary>
     public partial class FormZakazchik : Window
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
 
         public int Id { set { id = value; } }
 
-        private readonly IZakazchikService service;
-
         private int? id;
 
-        public FormZakazchik(IZakazchikService service)
+        public FormZakazchik()
         {
             InitializeComponent();
             Loaded += FormZakazchik_Load;
-            this.service = service;
         }
 
         private void FormZakazchik_Load(object sender, EventArgs e)
@@ -45,9 +38,16 @@ namespace WpfMotorZavod
             {
                 try
                 {
-                    ZakazchikViewModel view = service.GetElement(id.Value);
-                    if (view != null)
-                        textBoxFullName.Text = view.ZakazchikFIO;
+                    var response = APIClient.GetRequest("api/Zakazchik/Get/" + id.Value);
+                    if (response.Result.IsSuccessStatusCode)
+                    {
+                        var Zakazchik = APIClient.GetElement<ZakazchikViewModel>(response);
+                        textBoxFullName.Text = Zakazchik.ZakazchikFIO;
+                    }
+                    else
+                    {
+                        throw new Exception(APIClient.GetError(response));
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -65,9 +65,10 @@ namespace WpfMotorZavod
             }
             try
             {
+                Task<HttpResponseMessage> response;
                 if (id.HasValue)
                 {
-                    service.UpdElement(new ZakazchikBindingModel
+                    response = APIClient.PostRequest("api/Zakazchik/UpdElement", new ZakazchikBindingModel
                     {
                         Id = id.Value,
                         ZakazchikFIO = textBoxFullName.Text
@@ -75,14 +76,21 @@ namespace WpfMotorZavod
                 }
                 else
                 {
-                    service.AddElement(new ZakazchikBindingModel
+                    response = APIClient.PostRequest("api/Zakazchik/AddElement", new ZakazchikBindingModel
                     {
                         ZakazchikFIO = textBoxFullName.Text
                     });
                 }
-                MessageBox.Show("Сохранение прошло успешно", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
-                DialogResult = true;
-                Close();
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButton.OK, MessageBoxImage.Information);
+                    DialogResult = true;
+                    Close();
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
+                }
             }
             catch (Exception ex)
             {

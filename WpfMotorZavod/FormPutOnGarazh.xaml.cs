@@ -1,4 +1,6 @@
-﻿using System;
+﻿using AbstractShopService.BindingModels;
+using AbstractShopService.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,11 +13,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using AbstractShopService.BindingModels;
-using AbstractShopService.Interfaces;
-using AbstractShopService.ViewModels;
-using Unity;
-using Unity.Attributes;
 namespace WpfMotorZavod
 {
     /// <summary>
@@ -23,43 +20,47 @@ namespace WpfMotorZavod
     /// </summary>
     public partial class FormPutOnGarazh : Window
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
-        private readonly IGarazhService serviceB;
-
-        private readonly IDetaliService serviceZ;
-
-        private readonly IMainService serviceG;
-
-        public FormPutOnGarazh(IGarazhService serviceB, IDetaliService serviceZ, IMainService serviceG)
+        public FormPutOnGarazh()
         {
             InitializeComponent();
             Loaded += FormPutOnGarazh_Load;
-            this.serviceB = serviceB;
-            this.serviceZ = serviceZ;
-            this.serviceG = serviceG;
         }
 
         private void FormPutOnGarazh_Load(object sender, EventArgs e)
         {
             try
             {
-                List<DetaliViewModel> listZ = serviceZ.GetList();
-                if (listZ != null)
+                var responseC = APIClient.GetRequest("api/Detali/GetList");
+                if (responseC.Result.IsSuccessStatusCode)
                 {
-                    comboBoxDetali.DisplayMemberPath = "DetaliName";
-                    comboBoxDetali.SelectedValuePath = "Id";
-                    comboBoxDetali.ItemsSource = listZ;
-                    comboBoxDetali.SelectedItem = null;
+                    List<DetaliViewModel> list = APIClient.GetElement<List<DetaliViewModel>>(responseC);
+                    if (list != null)
+                    {
+                        comboBoxDetali.DisplayMemberPath = "DetaliName";
+                        comboBoxDetali.SelectedValuePath = "Id";
+                        comboBoxDetali.ItemsSource = list;
+                        comboBoxDetali.SelectedItem = null;
+                    }
                 }
-                List<GarazhViewModel> listB = serviceB.GetList();
-                if (listB != null)
+                else
                 {
-                    comboBoxGarazh.DisplayMemberPath = "GarazhName";
-                    comboBoxGarazh.SelectedValuePath = "Id";
-                    comboBoxGarazh.ItemsSource = listB;
-                    comboBoxGarazh.SelectedItem = null;
+                    throw new Exception(APIClient.GetError(responseC));
+                }
+                var responseS = APIClient.GetRequest("api/Garazh/GetList");
+                if (responseS.Result.IsSuccessStatusCode)
+                {
+                    List<GarazhViewModel> list = APIClient.GetElement<List<GarazhViewModel>>(responseS);
+                    if (list != null)
+                    {
+                        comboBoxGarazh.DisplayMemberPath = "GarazhName";
+                        comboBoxGarazh.SelectedValuePath = "Id";
+                        comboBoxGarazh.ItemsSource = list;
+                        comboBoxGarazh.SelectedItem = null;
+                    }
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(responseC));
                 }
             }
             catch (Exception ex)
@@ -87,16 +88,22 @@ namespace WpfMotorZavod
             }
             try
             {
-                serviceG.PutDetaliOnGarazh(new GarazhDetaliBindingModel
+                var response = APIClient.PostRequest("api/Main/PutDetaliOnGarazh", new GarazhDetaliBindingModel
                 {
                     DetaliId = Convert.ToInt32(comboBoxDetali.SelectedValue),
                     GarazhId = Convert.ToInt32(comboBoxGarazh.SelectedValue),
                     Count = Convert.ToInt32(textBoxCount.Text)
                 });
-                MessageBox.Show("Сохранение прошло успешно", "Информация",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
-                DialogResult = true;
-                Close();
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButton.OK, MessageBoxImage.Information);
+                    DialogResult = true;
+                    Close();
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
+                }
             }
             catch (Exception ex)
             {

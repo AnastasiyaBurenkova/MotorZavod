@@ -1,6 +1,9 @@
-﻿using System;
+﻿using AbstractShopService.BindingModels;
+using AbstractShopService.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -11,11 +14,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using AbstractShopService.BindingModels;
-using AbstractShopService.Interfaces;
-using AbstractShopService.ViewModels;
-using Unity;
-using Unity.Attributes;
 namespace WpfMotorZavod
 {
     /// <summary>
@@ -23,22 +21,16 @@ namespace WpfMotorZavod
     /// </summary>
     public partial class FormDvigateli : Window
     {
-        [Dependency]
-        public new IUnityContainer Container { get; set; }
-
         public int Id { set { id = value; } }
-
-        private readonly IDvigateliService service;
 
         private int? id;
 
-        private List<DvigateliDetaliViewModel> DvigateliDetalis;
+        private List<DvigateliDetaliViewModel> DetaliDvigatelis;
 
-        public FormDvigateli(IDvigateliService service)
+        public FormDvigateli()
         {
             InitializeComponent();
             Loaded += FormDvigateli_Load;
-            this.service = service;
         }
 
         private void FormDvigateli_Load(object sender, EventArgs e)
@@ -47,13 +39,18 @@ namespace WpfMotorZavod
             {
                 try
                 {
-                    DvigateliViewModel view = service.GetElement(id.Value);
-                    if (view != null)
+                    var response = APIClient.GetRequest("api/Dvigateli/Get/" + id.Value);
+                    if (response.Result.IsSuccessStatusCode)
                     {
-                        textBoxName.Text = view.DvigateliName;
-                        textBoxPrice.Text = view.Price.ToString();
-                        DvigateliDetalis = view.DvigateliDetalis;
+                        var Dvigateli = APIClient.GetElement<DvigateliViewModel>(response);
+                        textBoxName.Text = Dvigateli.DvigateliName;
+                        textBoxPrice.Text = Dvigateli.Price.ToString();
+                        DetaliDvigatelis = Dvigateli.DvigateliDetalis;
                         LoadData();
+                    }
+                    else
+                    {
+                        throw new Exception(APIClient.GetError(response));
                     }
                 }
                 catch (Exception ex)
@@ -62,17 +59,17 @@ namespace WpfMotorZavod
                 }
             }
             else
-                DvigateliDetalis = new List<DvigateliDetaliViewModel>();
+                DetaliDvigatelis = new List<DvigateliDetaliViewModel>();
         }
 
         private void LoadData()
         {
             try
             {
-                if (DvigateliDetalis != null)
+                if (DetaliDvigatelis != null)
                 {
                     dataGridViewDvigateli.ItemsSource = null;
-                    dataGridViewDvigateli.ItemsSource = DvigateliDetalis;
+                    dataGridViewDvigateli.ItemsSource = DetaliDvigatelis;
                     dataGridViewDvigateli.Columns[0].Visibility = Visibility.Hidden;
                     dataGridViewDvigateli.Columns[1].Visibility = Visibility.Hidden;
                     dataGridViewDvigateli.Columns[2].Visibility = Visibility.Hidden;
@@ -87,14 +84,14 @@ namespace WpfMotorZavod
 
         private void buttonAdd_Click(object sender, EventArgs e)
         {
-            var form = Container.Resolve<FormDvigateliDetali>();
+            var form = new FormDvigateliDetali();
             if (form.ShowDialog() == true)
             {
                 if (form.Model != null)
                 {
                     if (id.HasValue)
                         form.Model.DvigateliId = id.Value;
-                    DvigateliDetalis.Add(form.Model);
+                    DetaliDvigatelis.Add(form.Model);
                 }
                 LoadData();
             }
@@ -104,11 +101,11 @@ namespace WpfMotorZavod
         {
             if (dataGridViewDvigateli.SelectedItem != null)
             {
-                var form = Container.Resolve<FormDvigateliDetali>();
-                form.Model = DvigateliDetalis[dataGridViewDvigateli.SelectedIndex];
+                var form = new FormDvigateliDetali();
+                form.Model = DetaliDvigatelis[dataGridViewDvigateli.SelectedIndex];
                 if (form.ShowDialog() == true)
                 {
-                    DvigateliDetalis[dataGridViewDvigateli.SelectedIndex] = form.Model;
+                    DetaliDvigatelis[dataGridViewDvigateli.SelectedIndex] = form.Model;
                     LoadData();
                 }
             }
@@ -123,7 +120,7 @@ namespace WpfMotorZavod
                 {
                     try
                     {
-                        DvigateliDetalis.RemoveAt(dataGridViewDvigateli.SelectedIndex);
+                        DetaliDvigatelis.RemoveAt(dataGridViewDvigateli.SelectedIndex);
                     }
                     catch (Exception ex)
                     {
@@ -151,7 +148,7 @@ namespace WpfMotorZavod
                 MessageBox.Show("Заполните цену", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
-            if (DvigateliDetalis == null || DvigateliDetalis.Count == 0)
+            if (DetaliDvigatelis == null || DetaliDvigatelis.Count == 0)
             {
                 MessageBox.Show("Заполните заготовки", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
@@ -159,19 +156,20 @@ namespace WpfMotorZavod
             try
             {
                 List<DvigateliDetaliBindingModel> productComponentBM = new List<DvigateliDetaliBindingModel>();
-                for (int i = 0; i < DvigateliDetalis.Count; ++i)
+                for (int i = 0; i < DetaliDvigatelis.Count; ++i)
                 {
                     productComponentBM.Add(new DvigateliDetaliBindingModel
                     {
-                        Id = DvigateliDetalis[i].Id,
-                        DvigateliId = DvigateliDetalis[i].DvigateliId,
-                        DetaliId = DvigateliDetalis[i].DetaliId,
-                        Count = DvigateliDetalis[i].Count
+                        Id = DetaliDvigatelis[i].Id,
+                        DvigateliId = DetaliDvigatelis[i].DvigateliId,
+                        DetaliId = DetaliDvigatelis[i].DetaliId,
+                        Count = DetaliDvigatelis[i].Count
                     });
                 }
+                Task<HttpResponseMessage> response;
                 if (id.HasValue)
                 {
-                    service.UpdElement(new DvigateliBindingModel
+                    response = APIClient.PostRequest("api/Dvigateli/UpdElement", new DvigateliBindingModel
                     {
                         Id = id.Value,
                         DvigateliName = textBoxName.Text,
@@ -181,16 +179,23 @@ namespace WpfMotorZavod
                 }
                 else
                 {
-                    service.AddElement(new DvigateliBindingModel
+                    response = APIClient.PostRequest("api/Dvigateli/AddElement", new DvigateliBindingModel
                     {
                         DvigateliName = textBoxName.Text,
                         Price = Convert.ToInt32(textBoxPrice.Text),
                         DvigateliDetalis = productComponentBM
                     });
                 }
-                MessageBox.Show("Сохранение прошло успешно", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
-                DialogResult = true;
-                Close();
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    MessageBox.Show("Сохранение прошло успешно", "Сообщение", MessageBoxButton.OK, MessageBoxImage.Information);
+                    DialogResult = true;
+                    Close();
+                }
+                else
+                {
+                    throw new Exception(APIClient.GetError(response));
+                }
             }
             catch (Exception ex)
             {
