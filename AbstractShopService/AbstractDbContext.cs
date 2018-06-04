@@ -4,10 +4,10 @@ using System.Data.Entity;
 
 namespace AbstractShopService
 {
-    [Table("AbstractDatabase")]
+    
     public class AbstractDbContext : DbContext
     {
-        public AbstractDbContext()
+        public AbstractDbContext() : base("AbstractDatabase19")
         {
             //настройки конфигурации для entity
             Configuration.ProxyCreationEnabled = false;
